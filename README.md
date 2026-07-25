@@ -1,4 +1,4 @@
-# Snack Bar Product & Allergen Management
+# Food Vendor Allergen Manager
 
 ## 📌 Project Overview
 
@@ -95,10 +95,11 @@ src/product_management/
 │   ├── database.py       # DB engine/session setup + get_db dependency, reads DATABASE_URL from .env
 │   └── config.py           # Feature flags and vendor config (ENABLE_MEAT_TRACKING, ITEM_LABEL)
 ├── routers/
-│   ├── items.py             # /items, /gluten-free, /items/pdf routes
+│   ├── items.py             # /items, /gluten-free, /items/pdf routes (with search/filter support)
 │   ├── allergens.py          # /allergens route
-│   ├── health.py              # /health route
-│   └── config.py                # /config route, exposes vendor label config to the frontend
+│   ├── meat_types.py          # /meat-types route
+│   ├── health.py               # /health route
+│   └── config.py                 # /config route, exposes vendor label config to the frontend
 ├── models.py               # SQLAlchemy models (Item, Allergen, MeatType)
 ├── schemas.py               # Pydantic schemas
 ├── queries.py                # DB query functions
@@ -273,9 +274,14 @@ Both servers must be running at the same time for the frontend to fetch data fro
 
 ## 🔍 Available Endpoints
 
-* `GET /items` – list items with their allergens (paginated via `limit`/`offset`)
+* `GET /items` – list items with their allergens and meat types. Supports:
+  * `limit` / `offset` – pagination
+  * `search` – case-insensitive partial match on item name
+  * `exclude_allergens` – exclude items containing any of the given allergen codes (repeatable, e.g. `?exclude_allergens=gluten&exclude_allergens=milk`)
+  * `meat_types` – only include items containing at least one of the given meat type codes (repeatable)
 * `GET /gluten-free` – list items with no gluten allergen (paginated)
 * `GET /allergens` – list all known allergens
+* `GET /meat-types` – list all known meat types (empty if meat tracking is disabled)
 * `GET /items/pdf?language=nl|en` – generate a downloadable PDF file of the allergen matrix
 * `GET /health` – reports whether the API and database are reachable
 
@@ -283,8 +289,8 @@ Both servers must be running at the same time for the frontend to fetch data fro
 
 ## 🧭 Frontend Pages
 
-* `/` – **Allergen Matrix** page, a table with items listed down the left and allergens (with icons) across a sticky header row, marking which items contain which allergens. Below the table sits a legend explaining the marker, plus a labeled key listing every allergen by name and icon. The item column header, and the equivalent PDF header, both reflect the configured **item label** for the current language.
-* **Language switcher** — a button in the navbar toggles between Dutch and English at runtime, updating all translated text, allergen names, and the item label immediately.
+* `/` – **Allergen Matrix** page. On wider screens, a table with items listed down the left and allergens (with icons) — plus meat type columns when meat tracking is enabled — across a sticky header row, marking which items contain what. Below the table sits a legend explaining the marker, plus a labeled key listing every allergen by name and icon. The item column header, and the equivalent PDF header, both reflect the configured **item label** for the current language. On narrower screens, the table is replaced by a card-per-item layout instead, since a wide multi-column table doesn't work well on small screens.
+* **Language switcher** — a button in the navbar toggles between Dutch and English at runtime, updating all translated text, allergen names, meat type names, and the item label immediately.
 * **Download PDF** – a navbar link that triggers the backend's `/items/pdf` endpoint, downloading the allergen matrix in the currently selected language.
 
 A dedicated item list page was considered but removed in favor of the matrix view, since it already conveys the same information (item names + their allergens) more directly.
@@ -304,6 +310,8 @@ A dedicated item list page was considered but removed in favor of the matrix vie
 * Designing a single backend source of truth for configuration shared between a frontend and a generated PDF
 * Database migrations with Alembic, and why they matter once a project has real data to preserve
 * Managing environment-specific configuration (`.env`) instead of hardcoding values
+* Building responsive layouts with CSS media queries, including rendering two different structures (table vs. cards) for the same data depending on screen width
+* Writing composable SQLAlchemy queries with multiple optional filters (search, exclusion, inclusion) applied conditionally
 
 ---
 
@@ -323,8 +331,7 @@ Planned extensions include:
 * An authenticated Admin/Manager area in the frontend for managing a vendor's own data
 * A "clean start" flow, letting a new vendor populate their own data from the UI instead of editing seed files
 * Support for **"may contain traces of"** allergens
-* Search / filter functionality on the item matrix
-* Wiring meat type data into the PDF export and the frontend matrix (currently tracked in the database, but not yet displayed)
+* A frontend UI for the existing search/filter query parameters (currently backend-only, usable via the API directly)
 * PostgreSQL as a documented, tested alternative to SQLite for hosted deployments
 
 ---
