@@ -7,10 +7,12 @@ This project started from a **real, practical need** at my current **part-time j
 As a food business, we are legally required to:
 
 * Maintain a clear and correct **allergen list**
-* Be able to tell customers **which allergens are present in which products**
+* Be able to tell customers **which allergens are present in which items**
 * Follow EU / NVWA (Nederlandse Voedsel- en Warenautoriteit) food allergen regulations
 
 Managing this information manually quickly became error‑prone and time‑consuming. This project is my attempt to **solve that real-world problem with software**, while at the same time **learning and exploring new backend and frontend technologies**.
+
+The project was originally built around "products," but has since been generalized to **"items"** — a deliberate step toward making this usable by any food vendor (bakery, restaurant, butcher, etc.), not just a snackbar. See **Feature Flags** below for how vendor-specific terminology is configured.
 
 ---
 
@@ -25,11 +27,12 @@ It is intended to become part of my **developer portfolio**, showcasing how I ap
 ## 🎯 Goals of This Project
 
 * Model food allergens **correctly and realistically**
-* Link allergens to products in a flexible way
+* Link allergens to items in a flexible way
 * Create a clean and understandable backend foundation
 * Build a working, presentable frontend to consume that backend
 * Learn and practice technologies I have not used deeply before
 * Build a meaningful portfolio project based on real business needs
+* Generalize the project so any food vendor can use their own deployment of it
 
 ---
 
@@ -37,14 +40,14 @@ It is intended to become part of my **developer portfolio**, showcasing how I ap
 
 A key design decision in this project is **how allergens are modeled**.
 
-* Allergens are **not boolean fields** on a product
+* Allergens are **not boolean fields** on an item
 * Allergens are a **fixed, regulated list** (EU / NVWA)
-* Products can contain **multiple allergens**
-* One allergen can apply to **multiple products**
+* Items can contain **multiple allergens**
+* One allergen can apply to **multiple items**
 
 Because of this, the project uses a **many‑to‑many relationship** between:
 
-* `Product`
+* `Item`
 * `Allergen`
 
 This approach:
@@ -53,7 +56,7 @@ This approach:
 * Avoids fragile database schemas
 * Makes the system easy to extend in the future (e.g. "may contain traces of")
 
-The same pattern (a dedicated reference table + many‑to‑many relationship) is reused for **meat types** — an optional feature for tracking which meats (pork, beef, chicken, etc.) are present in a product. See **Feature Flags** below.
+The same pattern (a dedicated reference table + many‑to‑many relationship) is reused for **meat types** — an optional feature for tracking which meats (pork, beef, chicken, turkey, horse, fish, lamb) are present in an item. See **Feature Flags** below.
 
 ---
 
@@ -65,13 +68,15 @@ I intentionally chose this tech stack to **learn and explore different tools** b
 * **Python 3.13**
 * **FastAPI** – modern, fast backend framework
 * **SQLAlchemy 2.0** – ORM with explicit, type‑safe models
-* **SQLite** – simple local database for development
+* **SQLite** – local database for development (see **Database & Environment Configuration** for other options)
+* **Alembic** – database schema migrations
 * **Pydantic** – data validation and API schemas
+* **pytest** – automated testing, with an isolated in-memory test database
 
 **Frontend**
 * **React** – component-based UI library
 * **Vite** – frontend build tool and dev server
-* **React Router** – client-side routing setup (single route: the allergen matrix)
+* **React Router** – client-side routing setup
 
 Although I have previous experience with **Django + DRF**, this project focuses on:
 
@@ -87,24 +92,34 @@ Although I have previous experience with **Django + DRF**, this project focuses 
 ```
 src/product_management/
 ├── core/
-│   ├── database.py       # DB engine/session setup + get_db dependency
-│   └── config.py           # Feature flags (e.g. ENABLE_MEAT_TRACKING)
+│   ├── database.py       # DB engine/session setup + get_db dependency, reads DATABASE_URL from .env
+│   └── config.py           # Feature flags and vendor config (ENABLE_MEAT_TRACKING, ITEM_LABEL)
 ├── routers/
-│   ├── products.py         # /products, /gluten-free, /products/pdf routes
-│   ├── allergens.py         # /allergens route
-│   └── health.py             # /health route
-├── models.py               # SQLAlchemy models
+│   ├── items.py             # /items, /gluten-free, /items/pdf routes
+│   ├── allergens.py          # /allergens route
+│   ├── health.py              # /health route
+│   └── config.py                # /config route, exposes vendor label config to the frontend
+├── models.py               # SQLAlchemy models (Item, Allergen, MeatType)
 ├── schemas.py               # Pydantic schemas
 ├── queries.py                # DB query functions
 ├── seed/
 │   ├── insert_data.py         # Functions that insert data into the DB
-│   ├── products.py             # Real product+allergen data (gitignored, see below)
-│   ├── product_meat.py          # Real product+meat data (gitignored, optional)
-│   ├── allergens.py              # NVWA allergen reference data
-│   └── meat_types.py              # Meat type reference data
+│   ├── items.py                 # Real item+allergen data (gitignored, see below)
+│   ├── item_meat.py               # Real item+meat data (gitignored, optional)
+│   ├── allergens.py                # NVWA allergen reference data
+│   └── meat_types.py                 # Meat type reference data
 ├── pdf_generator.py           # PDF export logic
 └── static/
     └── icons/                # Allergen icons, served via FastAPI static files
+
+alembic/
+├── env.py                # Migration environment config, reads models + DATABASE_URL
+└── versions/               # Migration history
+
+alembic.ini                # Alembic top-level config
+requirements.txt             # Backend dependencies (pip freeze output)
+.env                          # Local environment variables (gitignored)
+.env.example                   # Template for required environment variables
 ```
 
 `main.py`, at the project root, only handles app setup, middleware, static files, startup seeding, and wiring the routers together via `app.include_router(...)` — no route logic lives there directly.
@@ -116,14 +131,14 @@ src/product_management/
 ```
 frontend/src/
 ├── components/
-│   ├── Navbar.jsx        # Top navigation bar with Allergens link + PDF download
+│   ├── Navbar.jsx        # Top navigation bar: PDF download link + language switcher
 │   └── Footer.jsx          # Page footer
 ├── pages/
-│   └── AllergensPage.jsx    # "/" — allergen x product matrix view, plus legend
-├── localization.js           # Central language setting and translated text
-├── App.jsx                    # Assembles layout and defines routes
-├── App.css                     # App-wide styling
-└── main.jsx                     # App entry point, wraps App in BrowserRouter
+│   └── AllergensPage.jsx    # "/" — the item x allergen matrix view, plus legend
+├── localization.jsx           # React Context: current language, translations, and the language switcher state
+├── App.jsx                     # Assembles layout and defines routes
+├── App.css                      # App-wide styling
+└── main.jsx                      # App entry point, wraps App in BrowserRouter + LanguageProvider
 ```
 
 ---
@@ -139,7 +154,7 @@ The application automatically seeds:
 * Soy
 * Mustard
 
-### Products
+### Items
 
 * **Frikandel** → gluten, soy, mustard
 * **Kroket** → gluten, milk
@@ -152,15 +167,65 @@ This data is inserted on application startup and is safe to run multiple times.
 
 ## 🚩 Feature Flags
 
-Some features are optional, since not every business using this project needs them.
+Some features and terminology are configurable, since not every food vendor using this project needs the same things.
 
-Feature flags live in `src/product_management/core/config.py`:
+Configuration lives in `src/product_management/core/config.py`:
 
 ```python
 ENABLE_MEAT_TRACKING = False  # Set to True to enable meat tracking features
+
+ITEM_LABEL = {
+    "en": "Item",
+    "nl": "Item",
+}
 ```
 
-**Meat tracking** links products to the meat types they contain (pork, beef, chicken, turkey, horse, fish, lamb), using the same many‑to‑many pattern as allergens. It's `False` by default — when disabled, meat reference data is never seeded and no meat types get assigned to products, but the underlying database tables still exist (created for every model regardless of the flag). Setting this to `True` and restarting the app (with a fresh database, see below) enables the feature.
+**Meat tracking** links items to the meat types they contain, using the same many‑to‑many pattern as allergens. It's `False` by default — when disabled, meat reference data is never seeded and no meat types get assigned to items, but the underlying database tables still exist (created for every model regardless of the flag).
+
+**Item label** controls the terminology shown in the matrix header and the exported PDF — e.g. a bakery could set this to `"Product"`, or a restaurant to `{"en": "Dish", "nl": "Gerecht"}`. This value is the single source of truth: it's exposed via the `/config` endpoint, and both the frontend and the PDF generator fetch/use it from there, so the two can never drift out of sync with each other.
+
+---
+
+## 🔐 Database & Environment Configuration
+
+Configuration that varies between environments (currently just the database connection) lives in a `.env` file, not hardcoded in the source code.
+
+Copy the template to create your own local config:
+
+```bash
+cp .env.example .env
+```
+
+`.env.example`:
+```
+DATABASE_URL=sqlite:///product_management.db
+```
+
+By default, the project runs against a local SQLite file — no separate database server required, good for local development or a small single-machine deployment. `DATABASE_URL` can be changed to point at a hosted PostgreSQL database instead for a more production-style setup; both are supported through the same `DATABASE_URL` value, since SQLAlchemy abstracts over the underlying database engine.
+
+`.env` is gitignored, since it's meant to hold local/real configuration. `.env.example` is committed as a template.
+
+---
+
+## 🧬 Database Migrations
+
+Schema changes are managed with **Alembic**, rather than deleting and recreating the database file on every model change.
+
+Workflow for any future schema change:
+
+```bash
+# 1. Edit models.py
+
+# 2. Generate a migration describing the change
+alembic revision --autogenerate -m "short description"
+
+# 3. Review the generated file in alembic/versions/
+
+# 4. Apply it
+alembic upgrade head
+```
+
+For a fresh clone of this project, running `alembic upgrade head` once builds the full database schema from the committed migration history — no manual table creation needed.
 
 ---
 
@@ -172,9 +237,11 @@ The backend and frontend run as two separate servers during development.
 
 ```bash
 pip install -r requirements.txt
+cp .env.example .env
+alembic upgrade head
 ```
 
-Set the preferred language for the generated PDF file via the `language` variable in the `download_products_pdf()` function (`main.py`), set to `'en'` or `'nl'`.
+Set the preferred **item label** and enable/disable **meat tracking** in `src/product_management/core/config.py` if desired (see **Feature Flags** above).
 
 Start the backend:
 
@@ -206,21 +273,21 @@ Both servers must be running at the same time for the frontend to fetch data fro
 
 ## 🔍 Available Endpoints
 
-* `GET /products` – list products with their allergens
-* `GET /gluten-free` – list products with no gluten allergen
+* `GET /items` – list items with their allergens (paginated via `limit`/`offset`)
+* `GET /gluten-free` – list items with no gluten allergen (paginated)
 * `GET /allergens` – list all known allergens
-* `GET /products/pdf` – generate a downloadable PDF file
-* `GET /static/icons/{filename}` – serves allergen icon images
+* `GET /items/pdf?language=nl|en` – generate a downloadable PDF file of the allergen matrix
 * `GET /health` – reports whether the API and database are reachable
 
 ---
 
 ## 🧭 Frontend Pages
 
-* `/` – **Allergen Matrix** page, a table with products listed down the left and allergens (with icons) across a sticky header row, marking which products contain which allergens. Below the table sits a legend explaining the marker, plus a labeled key listing every allergen by name and icon.
-* **Download PDF** – a navbar link that triggers the backend's `/products/pdf` endpoint directly, downloading the same allergen matrix as a PDF file
+* `/` – **Allergen Matrix** page, a table with items listed down the left and allergens (with icons) across a sticky header row, marking which items contain which allergens. Below the table sits a legend explaining the marker, plus a labeled key listing every allergen by name and icon. The item column header, and the equivalent PDF header, both reflect the configured **item label** for the current language.
+* **Language switcher** — a button in the navbar toggles between Dutch and English at runtime, updating all translated text, allergen names, and the item label immediately.
+* **Download PDF** – a navbar link that triggers the backend's `/items/pdf` endpoint, downloading the allergen matrix in the currently selected language.
 
-The dedicated product list page was removed in favor of the matrix view, since it already conveys the same information (product names + their allergens) more directly.
+A dedicated item list page was considered but removed in favor of the matrix view, since it already conveys the same information (item names + their allergens) more directly.
 
 ---
 
@@ -229,10 +296,14 @@ The dedicated product list page was removed in favor of the matrix view, since i
 * How to translate **legal/business requirements** into data models
 * React fundamentals: components, props, state, effects, conditional rendering
 * Connecting a React frontend to a FastAPI backend (CORS, fetch, serving static files)
-* Structuring a growing codebase into clear, single-purpose modules
+* Structuring a growing codebase into clear, single-purpose modules, including splitting routes into FastAPI routers
 * Client-side routing with React Router, and structuring an app into pages vs. reusable components
-* Combining data from multiple API endpoints in the frontend (products + allergens) to build a matrix view
+* Combining data from multiple API endpoints in the frontend (items + allergens) to build a matrix view
 * CSS Grid and sticky positioning for responsive, scrollable layouts
+* React Context, for sharing state (like the current language) across components without prop drilling
+* Designing a single backend source of truth for configuration shared between a frontend and a generated PDF
+* Database migrations with Alembic, and why they matter once a project has real data to preserve
+* Managing environment-specific configuration (`.env`) instead of hardcoding values
 
 ---
 
@@ -248,35 +319,38 @@ I see this as similar to using a tutorial, documentation, or a mentor: the AI he
 
 Planned extensions include:
 
-* Product creation via API (`POST /products`)
+* `POST` / `PUT` / `DELETE` endpoints for items, allergens, and meat types
+* An authenticated Admin/Manager area in the frontend for managing a vendor's own data
+* A "clean start" flow, letting a new vendor populate their own data from the UI instead of editing seed files
 * Support for **"may contain traces of"** allergens
-* Search / filter functionality on the products page
-* Runtime language switching (Dutch/English toggle) instead of a fixed setting in `localization.js`
+* Search / filter functionality on the item matrix
+* Wiring meat type data into the PDF export and the frontend matrix (currently tracked in the database, but not yet displayed)
+* PostgreSQL as a documented, tested alternative to SQLite for hosted deployments
 
 ---
 
-## 📦 Product Data Source
+## 📦 Item Data Source
 
-This project ships with sample product data for demo and development purposes.
+This project ships with sample item data for demo and development purposes.
 
-By default, the application loads data from an internal sample dataset: `SAMPLE_PRODUCTS`, defined in `src/product_management/seed/insert_data.py`.
+By default, the application loads data from an internal sample dataset: `SAMPLE_ITEMS`, defined in `src/product_management/seed/insert_data.py`.
 
-### Using real product data
+### Using real item data
 
-If you want to use your own (real) product data, you can provide it via a file that is intentionally excluded from version control.
+If you want to use your own (real) item data, you can provide it via a file that is intentionally excluded from version control.
 
 Create a file at:
 
 ```
-src/product_management/seed/products.py
+src/product_management/seed/items.py
 ```
 
-Define a variable called `products` with the same structure as `SAMPLE_PRODUCTS`:
+Define a variable called `items` with the same structure as `SAMPLE_ITEMS`:
 
 ```python
-products = {
-    "Example product": ["gluten", "milk"],
-    "Another product": ["nuts"],
+items = {
+    "Example item": ["gluten", "milk"],
+    "Another item": ["nuts"],
 }
 ```
 
@@ -288,28 +362,28 @@ This approach allows:
 * Keeping real business data private
 * Avoiding configuration or environment variables for simple setups
 
-**Note:** `src/product_management/seed/products.py` is listed in `.gitignore` to keep real business data out of version control.
+**Note:** `src/product_management/seed/items.py` is listed in `.gitignore` to keep real business data out of version control.
 
 ### Using real meat type data (optional)
 
-If **meat tracking** is enabled (see **Feature Flags** above), you can similarly provide real per-product meat data via a file excluded from version control.
+If **meat tracking** is enabled (see **Feature Flags** above), you can similarly provide real per-item meat data via a file excluded from version control.
 
 Create a file at:
 
 ```
-src/product_management/seed/product_meat.py
+src/product_management/seed/item_meat.py
 ```
 
-Define a variable called `product_meat` with the same structure as the sample data:
+Define a variable called `item_meat` with the same structure as the sample data:
 
 ```python
-product_meat = {
-    "Example product": ["pork", "beef"],
-    "Another product": [],
+item_meat = {
+    "Example item": ["pork", "beef"],
+    "Another item": [],
 }
 ```
 
-If this file isn't present, the application falls back to a small internal sample dataset. `src/product_management/seed/product_meat.py` is also listed in `.gitignore`.
+If this file isn't present, the application falls back to a small internal sample dataset. `src/product_management/seed/item_meat.py` is also listed in `.gitignore`.
 
 ---
 
