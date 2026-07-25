@@ -311,3 +311,11 @@ body {
     max-width: 600px;
   }
 }
+
+.navbar-brand {
+  color: #FAFAF8;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+}

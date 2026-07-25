@@ -30,6 +30,7 @@ class MeatTypeResponse(BaseModel):
 class ItemResponse(BaseModel):
     id: int
     name: str
+    category: str | None = None
     allergens: list[AllergenResponse]
     meat_types: list[MeatTypeResponse] = []
 

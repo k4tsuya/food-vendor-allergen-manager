@@ -25,7 +25,12 @@ def list_items(
     if meat_types:
         query = query.filter(Item.meat_types.any(MeatType.code.in_(meat_types)))
 
-    return query.limit(limit).offset(offset).all()
+    return (
+        query.order_by(Item.category.asc().nulls_last(), Item.name.asc())
+        .limit(limit)
+        .offset(offset)
+        .all()
+    )
 
 def list_allergens(db: Session) -> list[Allergen]:
     """Query all allergens."""

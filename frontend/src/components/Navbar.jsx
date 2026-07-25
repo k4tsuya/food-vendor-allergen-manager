@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useLanguage } from '../localization.jsx';
 
 function Navbar() {
@@ -5,7 +6,7 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      <span className="navbar-brand">{t.brand}</span>
+      <Link to="/" className="navbar-brand">{t.brand}</Link>
       <div className="navbar-links">
         
         <a  href={`http://localhost:8000/items/pdf?language=${language}`}

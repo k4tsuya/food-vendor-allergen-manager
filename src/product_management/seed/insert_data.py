@@ -22,6 +22,12 @@ SAMPLE_ITEM_MEAT_TYPES = {
     "Fishstick": ["fish"],
 }
 
+SAMPLE_ITEM_CATEGORIES = {
+    "Frikandel": "Snacks",
+    "Kroket": "Snacks",
+    "Bread": "Bakery",
+    "Fishstick": "Snacks",
+}
 
 def load_allergens(db: Session) -> None:
     """Insert allergens into the db if they don't exist."""
@@ -66,6 +72,7 @@ def load_items(db: Session) -> None:
 
     data_source: dict = SAMPLE_ITEMS
     meat_data_source: dict = SAMPLE_ITEM_MEAT_TYPES
+    category_data_source: dict = SAMPLE_ITEM_CATEGORIES
 
     allergens_by_code = {
         allergen.code: allergen
@@ -92,6 +99,12 @@ def load_items(db: Session) -> None:
     try:
         from src.product_management.seed.item_meat import item_meat
         meat_data_source = item_meat
+    except ImportError:
+        pass
+
+    try:
+        from src.product_management.seed.item_categories import item_categories
+        category_data_source = item_categories
     except ImportError:
         pass
 
