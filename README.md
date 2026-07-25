@@ -87,8 +87,12 @@ Although I have previous experience with **Django + DRF**, this project focuses 
 ```
 src/product_management/
 ├── core/
-│   ├── database.py       # DB engine/session setup
+│   ├── database.py       # DB engine/session setup + get_db dependency
 │   └── config.py           # Feature flags (e.g. ENABLE_MEAT_TRACKING)
+├── routers/
+│   ├── products.py         # /products, /gluten-free, /products/pdf routes
+│   ├── allergens.py         # /allergens route
+│   └── health.py             # /health route
 ├── models.py               # SQLAlchemy models
 ├── schemas.py               # Pydantic schemas
 ├── queries.py                # DB query functions
@@ -102,6 +106,8 @@ src/product_management/
 └── static/
     └── icons/                # Allergen icons, served via FastAPI static files
 ```
+
+`main.py`, at the project root, only handles app setup, middleware, static files, startup seeding, and wiring the routers together via `app.include_router(...)` — no route logic lives there directly.
 
 ---
 
@@ -165,7 +171,7 @@ The backend and frontend run as two separate servers during development.
 ### 1. Backend setup
 
 ```bash
-pip install fastapi uvicorn sqlalchemy pydantic fpdf
+pip install -r requirements.txt
 ```
 
 Set the preferred language for the generated PDF file via the `language` variable in the `download_products_pdf()` function (`main.py`), set to `'en'` or `'nl'`.
@@ -201,9 +207,11 @@ Both servers must be running at the same time for the frontend to fetch data fro
 ## 🔍 Available Endpoints
 
 * `GET /products` – list products with their allergens
+* `GET /gluten-free` – list products with no gluten allergen
 * `GET /allergens` – list all known allergens
 * `GET /products/pdf` – generate a downloadable PDF file
 * `GET /static/icons/{filename}` – serves allergen icon images
+* `GET /health` – reports whether the API and database are reachable
 
 ---
 
@@ -218,8 +226,6 @@ The dedicated product list page was removed in favor of the matrix view, since i
 
 ## 📚 What I Learned From This Project
 
-* How to model **many‑to‑many relationships** correctly
-* The difference between **ORM models** and **API schemas**
 * How to translate **legal/business requirements** into data models
 * React fundamentals: components, props, state, effects, conditional rendering
 * Connecting a React frontend to a FastAPI backend (CORS, fetch, serving static files)
