@@ -50,7 +50,7 @@ body {
 }
 
 .app {
-  max-width: 1400px;
+  max-width: 1000px;
   width: 100%;
   margin: 0 auto;
   padding: 2rem 1.5rem 3rem;
@@ -152,7 +152,7 @@ body {
 
 .matrix-item-name {
   text-align: left;
-  padding: 0.6rem 1rem 0.6rem 0;
+  padding: 0.6rem 1rem;
   border-bottom: 1px solid #E5E3DC;
   font-weight: 500;
   white-space: nowrap;
