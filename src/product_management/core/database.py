@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 
 
 protocol = "sqlite"
@@ -13,3 +13,11 @@ engine = create_engine(
 )
 
 SessionLocal = sessionmaker(bind=engine)
+
+
+def get_db():
+    db: Session = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

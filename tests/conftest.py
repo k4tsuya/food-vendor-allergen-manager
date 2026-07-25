@@ -5,7 +5,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from src.product_management.models import Base
-from main import app, get_db
+from main import app
+from src.product_management.core.database import get_db
 
 
 @pytest.fixture
