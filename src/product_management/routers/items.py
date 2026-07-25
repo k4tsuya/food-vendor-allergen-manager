@@ -8,9 +8,10 @@ from typing import Literal
 
 
 from src.product_management.core.database import get_db
+from src.product_management.core.config import CATEGORY_LABELS
 from src.product_management.schemas import ItemResponse
 from src.product_management.queries import (
-    list_items, get_gluten_free_items, pdf_list_items, list_categories)
+    list_items, get_gluten_free_items, pdf_list_items)
 from src.product_management.pdf_generator import AllergenMatrixPDF
 
 router = APIRouter()
@@ -72,4 +73,4 @@ def download_items_pdf(language: Literal["en", "nl"] = "nl", db: Session = Depen
 @router.get("/categories")
 def list_all_categories(db: Session = Depends(get_db)):
     """Return all distinct item categories currently in use."""
-    return list_categories(db)
+    return list(CATEGORY_LABELS.keys())

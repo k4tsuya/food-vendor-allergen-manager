@@ -108,7 +108,7 @@ def load_items(db: Session) -> None:
         if db.query(Item).filter_by(name=name).first():
             continue
 
-        item = Item(name=name, category=category_data_source.get(name))
+        item = Item(name=name, category_key=category_data_source.get(name))
 
         for code in allergen_codes:
             item.allergens.append(allergens_by_code[code])

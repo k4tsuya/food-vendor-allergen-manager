@@ -6,3 +6,9 @@ ITEM_LABEL = {
     "en": "Product",
     "nl": "Snack",
 }
+
+CATEGORY_LABELS = {
+    "bakery": {"en": "Bakery", "nl": "Bakkerij"},
+    "snacks": {"en": "Snacks", "nl": "Snacks"},
+    "sauces": {"en": "Sauces", "nl": "Sauzen"},
+}

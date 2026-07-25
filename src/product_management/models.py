@@ -62,7 +62,7 @@ class Item(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
-    category: Mapped[str] = mapped_column(String(100), nullable=True)
+    category_key: Mapped[str] = mapped_column(String(100), nullable=True)
     units_per_box: Mapped[int] = mapped_column(nullable=True)
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=True)
     

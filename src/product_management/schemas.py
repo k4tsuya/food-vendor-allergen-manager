@@ -7,6 +7,7 @@ class ConfigResponse(BaseModel):
     item_label_en: str
     item_label_nl: str
     meat_tracking_enabled: bool
+    category_labels: dict[str, dict[str, str]]
 
 
 class AllergenResponse(BaseModel):
@@ -30,7 +31,7 @@ class MeatTypeResponse(BaseModel):
 class ItemResponse(BaseModel):
     id: int
     name: str
-    category: str | None = None
+    category_key: str | None = None
     allergens: list[AllergenResponse]
     meat_types: list[MeatTypeResponse] = []
 

@@ -9,6 +9,7 @@ function FilterBar({
   selectedMeatTypes,
   onToggleMeatType,
   categories,
+  categoryLabels,
   selectedCategories,
   onToggleCategory,
   language,
@@ -37,7 +38,7 @@ function FilterBar({
                   checked={selectedCategories.includes(category)}
                   onChange={() => onToggleCategory(category)}
                 />
-                {category}
+                {categoryLabels[category]?.[language] || category}
               </label>
             ))}
           </div>

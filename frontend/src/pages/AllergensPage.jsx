@@ -7,6 +7,7 @@ function AllergensPage() {
   const [allergens, setAllergens] = useState([]);
   const [meatTypes, setMeatTypes] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [categoryLabels, setCategoryLabels] = useState({});
   const [items, setItems] = useState([]);
   const [itemLabel, setItemLabel] = useState('Item');
   const [meatTrackingEnabled, setMeatTrackingEnabled] = useState(false);
@@ -30,6 +31,7 @@ function AllergensPage() {
       setMeatTrackingEnabled(configData.meat_tracking_enabled);
       setMeatTypes(configData.meat_tracking_enabled ? meatTypesData : []);
       setCategories(categoriesData);
+      setCategoryLabels(configData.category_labels);
     });
   }, [language]);
 
@@ -70,6 +72,12 @@ function AllergensPage() {
   };
 
   const uncategorizedLabel = language === 'nl' ? 'Overig' : 'Uncategorized';
+
+  const getCategoryLabel = (key) => {
+    if (!key) return uncategorizedLabel;
+    return categoryLabels[key]?.[language] || key;
+  };
+
   let lastCategory = null;
 
   return (
@@ -85,6 +93,7 @@ function AllergensPage() {
         selectedMeatTypes={selectedMeatTypes}
         onToggleMeatType={toggleMeatType}
         categories={categories}
+        categoryLabels={categoryLabels}
         selectedCategories={selectedCategories}
         onToggleCategory={toggleCategory}
         language={language}
@@ -127,18 +136,18 @@ function AllergensPage() {
                 {items.map((item) => {
                   const itemAllergenIds = item.allergens.map((a) => a.id);
                   const itemMeatTypeIds = item.meat_types.map((m) => m.id);
-                  const category = item.category || uncategorizedLabel;
-                  const showCategoryHeader = category !== lastCategory;
-                  lastCategory = category;
+                  const categoryLabel = getCategoryLabel(item.category_key);
+                  const showCategoryHeader = categoryLabel !== lastCategory;
+                  lastCategory = categoryLabel;
 
                   const columnCount = 1 + allergens.length + (meatTrackingEnabled ? meatTypes.length : 0);
 
                   return (
                     <>
                       {showCategoryHeader && (
-                        <tr key={`category-${category}`} className="matrix-category-row">
+                        <tr key={`category-${categoryLabel}`} className="matrix-category-row">
                           <td colSpan={columnCount} className="matrix-category-label">
-                            {category}
+                            {categoryLabel}
                           </td>
                         </tr>
                       )}
@@ -165,15 +174,15 @@ function AllergensPage() {
           {/* Mobile: card view */}
           <div className="matrix-mobile-view">
             {items.map((item) => {
-              const category = item.category || uncategorizedLabel;
-              const showCategoryHeader = category !== lastCategory;
-              lastCategory = category;
+              const categoryLabel = getCategoryLabel(item.category_key);
+              const showCategoryHeader = categoryLabel !== lastCategory;
+              lastCategory = categoryLabel;
 
               return (
                 <>
                   {showCategoryHeader && (
-                    <h2 key={`mobile-category-${category}`} className="mobile-category-label">
-                      {category}
+                    <h2 key={`mobile-category-${categoryLabel}`} className="mobile-category-label">
+                      {categoryLabel}
                     </h2>
                   )}
                   <div key={item.id} className="item-card">
