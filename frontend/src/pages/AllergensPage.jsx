@@ -4,17 +4,16 @@ import { useLanguage } from '../localization.jsx';
 function AllergensPage() {
   const { language, t } = useLanguage();
   const [allergens, setAllergens] = useState([]);
-  const [products, setProducts] = useState([]);
+  const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
 
   useEffect(() => {
     Promise.all([
       fetch('http://localhost:8000/allergens').then(res => res.json()),
-      fetch('http://localhost:8000/products').then(res => res.json()),
-    ]).then(([allergensData, productsData]) => {
+      fetch('http://localhost:8000/items').then(res => res.json()),
+    ]).then(([allergensData, itemsData]) => {
       setAllergens(allergensData);
-      setProducts(productsData);
+      setItems(itemsData);
       setIsLoading(false);
     });
   }, []);
@@ -29,29 +28,29 @@ function AllergensPage() {
         <table className="allergen-matrix">
           <thead>
             <tr>
-              <th className="matrix-corner">Product</th>
-                {allergens.map((allergen) => (
+              <th className="matrix-corner">Item</th>
+              {allergens.map((allergen) => (
                 <th key={allergen.id} className="matrix-allergen-header">
-                    <img
+                  <img
                     src={`http://localhost:8000/static/icons/${allergen.code}.png`}
                     alt={language === 'nl' ? allergen.description_nl : allergen.description_en}
                     title={language === 'nl' ? allergen.description_nl : allergen.description_en}
                     className="matrix-icon"
-                    />
+                  />
                 </th>
-                ))}
+              ))}
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => {
-              const productAllergenIds = product.allergens.map((a) => a.id);
+            {items.map((item) => {
+              const itemAllergenIds = item.allergens.map((a) => a.id);
 
               return (
-                <tr key={product.id}>
-                  <td className="matrix-product-name">{product.name}</td>
+                <tr key={item.id}>
+                  <td className="matrix-item-name">{item.name}</td>
                   {allergens.map((allergen) => (
                     <td key={allergen.id} className="matrix-cell">
-                      {productAllergenIds.includes(allergen.id) ? '●' : ''}
+                      {itemAllergenIds.includes(allergen.id) ? '●' : ''}
                     </td>
                   ))}
                 </tr>

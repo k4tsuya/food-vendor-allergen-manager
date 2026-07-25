@@ -8,7 +8,7 @@ function Navbar() {
       <span className="navbar-brand">{t.brand}</span>
       <div className="navbar-links">
         
-        <a  href={`http://localhost:8000/products/pdf?language=${language}`}
+        <a  href={`http://localhost:8000/items/pdf?language=${language}`}
           className="navbar-link navbar-link-icon"
         >
           <svg

@@ -1,4 +1,4 @@
-"""Module containing schemas for the product management app."""
+"""Module containing schemas for the item management app."""
 
 from pydantic import BaseModel, ConfigDict
 
@@ -20,7 +20,7 @@ class MeatTypeResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ProductResponse(BaseModel):
+class ItemResponse(BaseModel):
     id: int
     name: str
     allergens: list[AllergenResponse]
@@ -29,6 +29,6 @@ class ProductResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ProductAllergenView(BaseModel):
+class ItemAllergenView(BaseModel):
     name: str
     allergens: list[str]

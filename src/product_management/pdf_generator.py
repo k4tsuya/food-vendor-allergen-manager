@@ -17,7 +17,7 @@ TEXTS = {
 
 
 @dataclass
-class ProductAllergenView:
+class ItemAllergenView:
     name: str
     allergens: list[str]
 
@@ -45,7 +45,7 @@ class AllergenMatrixPDF(FPDF):
         self,
         allergen_codes: list[str],
         allergen_labels: dict[str, dict],
-        product_col_width: int,
+        item_col_width: int,
         allergen_col_width: int,
         row_height: int,
     ) -> None:
@@ -59,7 +59,7 @@ class AllergenMatrixPDF(FPDF):
 
         # Icon header row
         self.set_font("helvetica", "B", 8)
-        self.cell(product_col_width, row_height, "", border=1)
+        self.cell(item_col_width, row_height, "", border=1)
 
         for code in allergen_codes:
             x = self.get_x()
@@ -81,7 +81,7 @@ class AllergenMatrixPDF(FPDF):
         self.ln()
 
         # Label header row
-        self.cell(product_col_width, row_height, "Product", border=1)
+        self.cell(item_col_width, row_height, "Item", border=1)
 
         for code in allergen_codes:
             label = allergen_labels[code]["label"]
@@ -110,7 +110,7 @@ class AllergenMatrixPDF(FPDF):
     # ---------- Main generator ----------
     def generate_allergen_matrix_pdf(
         self,
-        data: Sequence["ProductAllergenView"],
+        data: Sequence["ItemAllergenView"],
         output_path: str,
         language: str
     ) -> None:
@@ -119,7 +119,7 @@ class AllergenMatrixPDF(FPDF):
 
 
         # Layout constants
-        product_col_width = 30
+        item_col_width = 30
         allergen_col_width = 18
         row_height = 10
 
@@ -129,43 +129,43 @@ class AllergenMatrixPDF(FPDF):
         self.start_new_page(
             allergen_codes,
             allergen_labels,
-            product_col_width,
+            item_col_width,
             allergen_col_width,
             row_height,
         )
 
         fill = False
-        for product in data:
+        for item in data:
             self.check_page_break(
                 row_height,
                 lambda: self.start_new_page(
                     allergen_codes,
                     allergen_labels,
-                    product_col_width,
+                    item_col_width,
                     allergen_col_width,
                     row_height,
                 ),
             )
 
-            self.set_fill_color((255, 255, 255) if fill else (235, 235, 235)) 
+            self.set_fill_color(235, 235, 235 if fill else 255)
             fill = not fill
 
             self.cell(
-                product_col_width,
+                item_col_width,
                 row_height,
-                product.name,
+                item.name,
                 border=1,
                 fill=True,
             )
 
             for code in allergen_codes:
                 sorted(code)
-                if code in product.allergens:
+                if code in item.allergens:
                     self.set_font('ZapfDingbats', '', 12)
                 else:
                     self.set_font('helvetica', '', 8)
 
-                mark = "4" if code in product.allergens else ""
+                mark = "4" if code in item.allergens else ""
                 self.cell(
                     allergen_col_width,
                     row_height,

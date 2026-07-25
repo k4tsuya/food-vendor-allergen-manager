@@ -210,5 +210,5 @@ __marimo__/
 .vscode/
 *.pdf
 *.db
-src/product_management/seed/products.py
-src/product_management/seed/product_meat_types.py
+src/product_management/seed/items.py
+src/product_management/seed/item_meat_types.py

@@ -1,4 +1,4 @@
-"""Module containing models for the product management app."""
+"""Module containing models for the item management app."""
 
 from sqlalchemy import Column, ForeignKey, Numeric, String, Table
 from sqlalchemy.orm import (
@@ -14,17 +14,17 @@ class Base(DeclarativeBase):
     pass
 
 
-product_allergen = Table(
-    "product_allergen",
+item_allergen = Table(
+    "item_allergen",
     Base.metadata,
-    Column("product_id", ForeignKey("products.id"), primary_key=True),
+    Column("item_id", ForeignKey("items.id"), primary_key=True),
     Column("allergen_id", ForeignKey("allergens.id"), primary_key=True),
 )
 
-product_meat_type = Table(
-    "product_meat_type",
+item_meat_type = Table(
+    "item_meat_type",
     Base.metadata,
-    Column("product_id", ForeignKey("products.id"), primary_key=True),
+    Column("item_id", ForeignKey("items.id"), primary_key=True),
     Column("meat_type_id", ForeignKey("meat_types.id"), primary_key=True),
 )
 
@@ -37,8 +37,8 @@ class Allergen(Base):
     description_en: Mapped[str] = mapped_column(String(200), nullable=False)
     description_nl: Mapped[str] = mapped_column(String(200), nullable=False)
 
-    products: Mapped[list["Product"]] = relationship(
-        secondary=product_allergen,
+    items: Mapped[list["Item"]] = relationship(
+        secondary=item_allergen,
         back_populates="allergens",
     )
 
@@ -51,14 +51,14 @@ class MeatType(Base):
     description_en: Mapped[str] = mapped_column(String(200), nullable=False)
     description_nl: Mapped[str] = mapped_column(String(200), nullable=False)
 
-    products: Mapped[list["Product"]] = relationship(
-        secondary=product_meat_type,
+    items: Mapped[list["Item"]] = relationship(
+        secondary=item_meat_type,
         back_populates="meat_types",
     )
 
 
-class Product(Base):
-    __tablename__ = "products"
+class Item(Base):
+    __tablename__ = "items"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
@@ -66,10 +66,10 @@ class Product(Base):
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=True)
 
     allergens: Mapped[list[Allergen]] = relationship(
-        secondary=product_allergen,
-        back_populates="products",
+        secondary=item_allergen,
+        back_populates="items",
     )
     meat_types: Mapped[list["MeatType"]] = relationship(
-        secondary=product_meat_type,
-        back_populates="products",
+        secondary=item_meat_type,
+        back_populates="items",
     )

@@ -1,29 +1,29 @@
-"""Queries for the product management app."""
-from src.product_management.schemas import ProductAllergenView
-from src.product_management.models import Product, Allergen
+"""Queries for the item management app."""
+from src.product_management.schemas import ItemAllergenView
+from src.product_management.models import Item, Allergen
 from sqlalchemy.orm import Session
 
 
-def list_products(db: Session) -> list[Product]:
-    """Query all products."""
-    return db.query(Product).all()
+def list_items(db: Session) -> list[Item]:
+    """Query all items."""
+    return db.query(Item).all()
 
 def list_allergens(db: Session) -> list[Allergen]:
     """Query all allergens."""
     return db.query(Allergen).order_by(Allergen.description_en).all()
 
-def get_gluten_free_products(db: Session) -> list[Product]:
-    """Query all gluten-free products."""
-    return (db.query(Product).filter(~Product.allergens.any(Allergen.code == "gluten")).all())
+def get_gluten_free_items(db: Session) -> list[Item]:
+    """Query all gluten-free items."""
+    return (db.query(Item).filter(~Item.allergens.any(Allergen.code == "gluten")).all())
 
-def pdf_list_products(db: Session) -> list[ProductAllergenView]:
-    """List all products with their allergens."""
-    products = list_products(db)
+def pdf_list_items(db: Session) -> list[ItemAllergenView]:
+    """List all items with their allergens."""
+    items = list_items(db)
 
     return [
-        ProductAllergenView(
-            name=p.name,
-            allergens=[a.code for a in p.allergens],
+        ItemAllergenView(
+            name=i.name,
+            allergens=[a.code for a in i.allergens],
         )
-        for p in products
+        for i in items
     ]
