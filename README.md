@@ -58,6 +58,8 @@ This approach:
 
 The same pattern (a dedicated reference table + many‑to‑many relationship) is reused for **meat types** — an optional feature for tracking which meats (pork, beef, chicken, turkey, horse, fish, lamb) are present in an item. See **Feature Flags** below.
 
+Items also have an optional **category** (e.g. "Snacks", "Sauces", "Drinks"). Unlike allergens and meat types, category is deliberately **free text** rather than a fixed reference list — different vendor types (snackbar, bakery, drinks stand) need wildly different categories, so a hardcoded list wouldn't generalize well. One item belongs to exactly one category.
+
 ---
 
 ## 🧱 Tech Stack
@@ -132,8 +134,9 @@ requirements.txt             # Backend dependencies (pip freeze output)
 ```
 frontend/src/
 ├── components/
-│   ├── Navbar.jsx        # Top navigation bar: PDF download link + language switcher
-│   └── Footer.jsx          # Page footer
+│   ├── Navbar.jsx        # Top navigation bar: clickable title/home link, PDF download, language switcher
+│   ├── Footer.jsx          # Page footer
+│   └── FilterBar.jsx        # Search box + allergen/meat type/category filter checkboxes
 ├── pages/
 │   └── AllergensPage.jsx    # "/" — the item x allergen matrix view, plus legend
 ├── localization.jsx           # React Context: current language, translations, and the language switcher state
@@ -279,9 +282,11 @@ Both servers must be running at the same time for the frontend to fetch data fro
   * `search` – case-insensitive partial match on item name
   * `exclude_allergens` – exclude items containing any of the given allergen codes (repeatable, e.g. `?exclude_allergens=gluten&exclude_allergens=milk`)
   * `meat_types` – only include items containing at least one of the given meat type codes (repeatable)
+  * `categories` – only include items in one of the given categories (repeatable)
 * `GET /gluten-free` – list items with no gluten allergen (paginated)
 * `GET /allergens` – list all known allergens
 * `GET /meat-types` – list all known meat types (empty if meat tracking is disabled)
+* `GET /categories` – list all distinct categories currently assigned to at least one item
 * `GET /items/pdf?language=nl|en` – generate a downloadable PDF file of the allergen matrix
 * `GET /health` – reports whether the API and database are reachable
 
@@ -289,7 +294,8 @@ Both servers must be running at the same time for the frontend to fetch data fro
 
 ## 🧭 Frontend Pages
 
-* `/` – **Allergen Matrix** page. On wider screens, a table with items listed down the left and allergens (with icons) — plus meat type columns when meat tracking is enabled — across a sticky header row, marking which items contain what. Below the table sits a legend explaining the marker, plus a labeled key listing every allergen by name and icon. The item column header, and the equivalent PDF header, both reflect the configured **item label** for the current language. On narrower screens, the table is replaced by a card-per-item layout instead, since a wide multi-column table doesn't work well on small screens.
+* `/` – **Allergen Matrix** page. A filter bar above the content lets someone search by name and filter by allergen (exclude), meat type, and category, refetching live as filters change. On wider screens, a table with items listed down the left and allergens (with icons) — plus meat type columns when meat tracking is enabled — across a sticky header row, marking which items contain what, grouped visually by category with section header rows. Below the table sits a legend explaining the marker, plus a labeled key listing every allergen by name and icon. On narrower screens, the table is replaced by a card-per-item layout instead (also grouped by category), since a wide multi-column table doesn't work well on small screens.
+* **Clickable title** — the navbar title links back to the homepage, a standard site navigation convention.
 * **Language switcher** — a button in the navbar toggles between Dutch and English at runtime, updating all translated text, allergen names, meat type names, and the item label immediately.
 * **Download PDF** – a navbar link that triggers the backend's `/items/pdf` endpoint, downloading the allergen matrix in the currently selected language.
 
@@ -312,6 +318,9 @@ A dedicated item list page was considered but removed in favor of the matrix vie
 * Managing environment-specific configuration (`.env`) instead of hardcoding values
 * Building responsive layouts with CSS media queries, including rendering two different structures (table vs. cards) for the same data depending on screen width
 * Writing composable SQLAlchemy queries with multiple optional filters (search, exclusion, inclusion) applied conditionally
+* Exploring controlled checkbox inputs and the "toggle a value in an array" state update pattern in React
+* Exploring `URLSearchParams` for building query strings from multiple filter values
+* Exploring separating "reference data" fetches (allergens, categories) from "filtered data" fetches (items) across multiple `useEffect` calls
 
 ---
 
@@ -330,8 +339,8 @@ Planned extensions include:
 * `POST` / `PUT` / `DELETE` endpoints for items, allergens, and meat types
 * An authenticated Admin/Manager area in the frontend for managing a vendor's own data
 * A "clean start" flow, letting a new vendor populate their own data from the UI instead of editing seed files
+* Category management from the UI — categories are currently free text, assigned only via seed files, with no way to create/rename them from the app yet
 * Support for **"may contain traces of"** allergens
-* A frontend UI for the existing search/filter query parameters (currently backend-only, usable via the API directly)
 * PostgreSQL as a documented, tested alternative to SQLite for hosted deployments
 
 ---
