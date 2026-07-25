@@ -4,6 +4,8 @@ from pathlib import Path
 from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
+from typing import Literal
+
 
 from src.product_management.core.database import get_db
 from src.product_management.schemas import ItemResponse
@@ -19,19 +21,19 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 
 
 @router.get("/items", response_model=list[ItemResponse])
-def list_all_items(db: Session = Depends(get_db)):
+def list_all_items(db: Session = Depends(get_db), limit: int = 50, offset: int = 0):
     """Return all items."""
-    return list_items(db)
+    return list_items(db, limit, offset)
 
 
 @router.get("/gluten-free", response_model=list[ItemResponse])
-def list_gluten_free_items(db: Session = Depends(get_db)):
+def list_gluten_free_items(db: Session = Depends(get_db), limit: int = 50, offset: int = 0):
     """Return all gluten-free items."""
-    return get_gluten_free_items(db)
+    return get_gluten_free_items(db, limit, offset)
 
 
 @router.get("/items/pdf", response_class=FileResponse)
-def download_items_pdf(language: str = "nl", db: Session = Depends(get_db)):
+def download_items_pdf(language: Literal["en", "nl"] = "nl", db: Session = Depends(get_db)):
     """Save a PDF of all items and their allergens."""
     items = pdf_list_items(db)
     file_path = OUTPUT_DIR / "item_allergens.pdf"

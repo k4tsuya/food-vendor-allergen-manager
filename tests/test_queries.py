@@ -54,3 +54,13 @@ def test_pdf_list_items_returns_correct_shape(db_session):
     assert len(result) == 1
     assert result[0].name == "Bread"
     assert result[0].allergens == ["gluten"]
+
+
+def test_list_items_respects_limit_and_offset(db_session):
+    for name in ["Frikandel", "Kroket", "Bread", "Fishstick"]:
+        db_session.add(Item(name=name))
+    db_session.commit()
+
+    result = list_items(db_session, limit=2, offset=1)
+
+    assert len(result) == 2

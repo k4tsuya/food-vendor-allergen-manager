@@ -60,3 +60,9 @@ def test_health_check_returns_ok(client):
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
     assert response.json()["database"] == "ok"
+
+
+def test_download_pdf_endpoint_rejects_invalid_language(client):
+    response = client.get("/items/pdf?language=fr")
+
+    assert response.status_code == 422
