@@ -20,10 +20,26 @@ OUTPUT_DIR = BASE_DIR / "generated"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 
+from fastapi import Query
+
 @router.get("/items", response_model=list[ItemResponse])
-def list_all_items(db: Session = Depends(get_db), limit: int = 50, offset: int = 0):
-    """Return all items."""
-    return list_items(db, limit, offset)
+def list_all_items(
+    limit: int = 50,
+    offset: int = 0,
+    search: str | None = None,
+    exclude_allergens: list[str] | None = Query(default=None),
+    meat_types: list[str] | None = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    """Return items, paginated and optionally filtered."""
+    return list_items(
+        db,
+        limit=limit,
+        offset=offset,
+        search=search,
+        exclude_allergens=exclude_allergens,
+        meat_types=meat_types,
+    )
 
 
 @router.get("/gluten-free", response_model=list[ItemResponse])

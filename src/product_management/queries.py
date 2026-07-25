@@ -1,12 +1,31 @@
 """Queries for the item management app."""
 from src.product_management.schemas import ItemAllergenView
-from src.product_management.models import Item, Allergen
+from src.product_management.models import Item, Allergen, MeatType
 from sqlalchemy.orm import Session
 
 
-def list_items(db: Session, limit: int = 50, offset: int = 0) -> list[Item]:
-    """Query all items."""
-    return db.query(Item).limit(limit).offset(offset).all()
+def list_items(
+    db: Session,
+    limit: int = 50,
+    offset: int = 0,
+    search: str | None = None,
+    exclude_allergens: list[str] | None = None,
+    meat_types: list[str] | None = None,
+) -> list[Item]:
+    """Query items, paginated and optionally filtered."""
+    query = db.query(Item)
+
+    if search:
+        query = query.filter(Item.name.ilike(f"%{search}%"))
+
+    if exclude_allergens:
+        for code in exclude_allergens:
+            query = query.filter(~Item.allergens.any(Allergen.code == code))
+
+    if meat_types:
+        query = query.filter(Item.meat_types.any(MeatType.code.in_(meat_types)))
+
+    return query.limit(limit).offset(offset).all()
 
 def list_allergens(db: Session) -> list[Allergen]:
     """Query all allergens."""
