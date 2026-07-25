@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict
 class ConfigResponse(BaseModel):
     item_label_en: str
     item_label_nl: str
+    meat_tracking_enabled: bool
 
 
 class AllergenResponse(BaseModel):

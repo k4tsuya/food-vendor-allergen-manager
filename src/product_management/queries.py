@@ -35,6 +35,11 @@ def get_gluten_free_items(db: Session, limit: int = 50, offset: int = 0) -> list
     """Query all gluten-free items."""
     return (db.query(Item).filter(~Item.allergens.any(Allergen.code == "gluten")).limit(limit).offset(offset).all())
 
+
+def list_meat_types(db: Session) -> list[MeatType]:
+    """Query all meat types."""
+    return db.query(MeatType).order_by(MeatType.description_en).all()
+
 def pdf_list_items(db: Session) -> list[ItemAllergenView]:
     """List all items with their allergens."""
     items = list_items(db)

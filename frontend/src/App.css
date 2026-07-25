@@ -233,3 +233,15 @@ body {
   align-items: center;
   gap: 0.35rem;
 }
+
+.matrix-meat-header {
+  padding: 0.5rem;
+  text-align: center;
+  border-bottom: 2px solid #1C1C1A;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  background-color: #FAFAF8;
+  z-index: 1;
+}
