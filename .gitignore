@@ -212,3 +212,4 @@ __marimo__/
 *.db
 src/product_management/seed/items.py
 src/product_management/seed/item_meat_types.py
+generated/

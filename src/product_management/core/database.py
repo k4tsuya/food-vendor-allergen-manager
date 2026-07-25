@@ -1,11 +1,11 @@
+import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
+load_dotenv()
 
-protocol = "sqlite"
-db_name = "product_management.db"
-
-DATABASE_URL = f"{protocol}:///{db_name}"
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///product_management.db")
 
 engine = create_engine(
     DATABASE_URL,
