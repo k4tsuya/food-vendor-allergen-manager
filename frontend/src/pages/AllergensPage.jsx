@@ -32,7 +32,8 @@ function AllergensPage() {
 
   return (
     <div className="app">
-      <div className="matrix-wrapper">
+      {/* Desktop: table view */}
+      <div className="matrix-wrapper matrix-desktop-view">
         <table className="allergen-matrix">
           <thead>
             <tr>
@@ -73,7 +74,7 @@ function AllergensPage() {
                     </td>
                   ))}
                   {meatTrackingEnabled && meatTypes.map((meatType) => (
-                    <td key={`meat-${meatType.id}`} className="matrix-cell matrix-meat-cell">
+                    <td key={`meat-${meatType.id}`} className="matrix-cell">
                       {itemMeatTypeIds.includes(meatType.id) ? '●' : ''}
                     </td>
                   ))}
@@ -82,6 +83,42 @@ function AllergensPage() {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile: card view */}
+      <div className="matrix-mobile-view">
+        {items.map((item) => (
+          <div key={item.id} className="item-card">
+            <span className="item-card-name">{item.name}</span>
+
+            {item.allergens.length > 0 ? (
+              <div className="item-card-tags">
+                {item.allergens.map((allergen) => (
+                  <span key={allergen.id} className="item-card-tag">
+                    <img
+                      src={`http://localhost:8000/static/icons/${allergen.code}.png`}
+                      alt={language === 'nl' ? allergen.description_nl : allergen.description_en}
+                      className="item-card-tag-icon"
+                    />
+                    {language === 'nl' ? allergen.description_nl : allergen.description_en}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="no-allergens">{t.noAllergens}</p>
+            )}
+
+            {meatTrackingEnabled && item.meat_types.length > 0 && (
+              <div className="item-card-tags item-card-meat-tags">
+                {item.meat_types.map((meatType) => (
+                  <span key={meatType.id} className="item-card-tag item-card-meat-tag">
+                    {language === 'nl' ? meatType.description_nl : meatType.description_en}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
       <div className="legend-section">

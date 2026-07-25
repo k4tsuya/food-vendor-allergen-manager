@@ -6,6 +6,9 @@ body {
   margin: 0;
 }
 
+
+
+
 .page {
   min-height: 100vh;
   display: flex;
@@ -47,7 +50,7 @@ body {
 }
 
 .app {
-  max-width: 960px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
   padding: 2rem 1.5rem 3rem;
@@ -125,7 +128,6 @@ body {
 
 .allergen-matrix {
   border-collapse: collapse;
-  border-spacing: 0;
   width: 100%;
 }
 
@@ -244,4 +246,68 @@ body {
   top: 0;
   background-color: #FAFAF8;
   z-index: 1;
+}
+
+.matrix-mobile-view {
+  display: none;
+}
+
+.item-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  border: 1px solid #E5E3DC;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.item-card-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #1C1C1A;
+}
+
+.item-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.item-card-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background-color: #FBEBD4;
+  color: #8A5A1E;
+  border: 1px solid #E8A33D;
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.item-card-tag-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.item-card-meat-tag {
+  background-color: #E4EEF7;
+  color: #2E5A80;
+  border-color: #A9C7E0;
+}
+
+@media (max-width: 700px) {
+  .matrix-desktop-view {
+    display: none;
+  }
+
+  .matrix-mobile-view {
+    display: block;
+  }
+
+  .app {
+    max-width: 600px;
+  }
 }
