@@ -64,7 +64,8 @@ class Item(Base):
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     units_per_box: Mapped[int] = mapped_column(nullable=True)
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=True)
-
+    
+    
     allergens: Mapped[list[Allergen]] = relationship(
         secondary=item_allergen,
         back_populates="items",
