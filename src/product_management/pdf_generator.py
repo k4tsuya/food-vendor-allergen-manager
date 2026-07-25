@@ -41,7 +41,6 @@ class AllergenMatrixPDF(FPDF):
 
 
     # ---------- Page setup ----------
-# ---------- Page setup ----------
     def start_new_page(
         self,
         allergen_codes: list[str],
@@ -49,7 +48,6 @@ class AllergenMatrixPDF(FPDF):
         item_col_width: int,
         allergen_col_width: int,
         row_height: int,
-        item_label: str,
     ) -> None:
         self.add_page()
 
@@ -83,7 +81,7 @@ class AllergenMatrixPDF(FPDF):
         self.ln()
 
         # Label header row
-        self.cell(item_col_width, row_height, item_label, border=1)
+        self.cell(item_col_width, row_height, "", border=1)
 
         for code in allergen_codes:
             label = allergen_labels[code]["label"]
@@ -115,7 +113,6 @@ class AllergenMatrixPDF(FPDF):
         data: Sequence["ItemAllergenView"],
         output_path: str,
         language: str,
-        item_label: str,
     ) -> None:
         allergen_labels = self.get_allergen_labels(language)
         allergen_codes = list(allergen_labels.keys())
@@ -135,7 +132,6 @@ class AllergenMatrixPDF(FPDF):
             item_col_width,
             allergen_col_width,
             row_height,
-            item_label,
         )
 
         fill = False
@@ -148,7 +144,6 @@ class AllergenMatrixPDF(FPDF):
                     item_col_width,
                     allergen_col_width,
                     row_height,
-                    item_label,
                 ),
             )
 

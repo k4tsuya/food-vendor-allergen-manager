@@ -9,9 +9,9 @@ from typing import Literal
 
 from src.product_management.core.database import get_db
 from src.product_management.schemas import ItemResponse
-from src.product_management.queries import list_items, get_gluten_free_items, pdf_list_items
+from src.product_management.queries import (
+    list_items, get_gluten_free_items, pdf_list_items, list_categories)
 from src.product_management.pdf_generator import AllergenMatrixPDF
-from src.product_management.core.config import ITEM_LABEL
 
 router = APIRouter()
 
@@ -28,6 +28,7 @@ def list_all_items(
     offset: int = 0,
     search: str | None = None,
     exclude_allergens: list[str] | None = Query(default=None),
+    categories: list[str] | None = Query(default=None),
     meat_types: list[str] | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
@@ -39,6 +40,7 @@ def list_all_items(
         search=search,
         exclude_allergens=exclude_allergens,
         meat_types=meat_types,
+        categories=categories,
     )
 
 
@@ -60,7 +62,6 @@ def download_items_pdf(language: Literal["en", "nl"] = "nl", db: Session = Depen
         data=items,
         output_path=str(file_path),
         language=language,
-        item_label=ITEM_LABEL[language],
     )
 
     return FileResponse(
@@ -68,3 +69,7 @@ def download_items_pdf(language: Literal["en", "nl"] = "nl", db: Session = Depen
         media_type="application/pdf",
         filename="item_allergens.pdf",
     )
+@router.get("/categories")
+def list_all_categories(db: Session = Depends(get_db)):
+    """Return all distinct item categories currently in use."""
+    return list_categories(db)

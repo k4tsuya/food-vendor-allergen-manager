@@ -11,6 +11,7 @@ def list_items(
     search: str | None = None,
     exclude_allergens: list[str] | None = None,
     meat_types: list[str] | None = None,
+    categories: list[str] | None = None,
 ) -> list[Item]:
     """Query items, paginated and optionally filtered."""
     query = db.query(Item)
@@ -24,6 +25,9 @@ def list_items(
 
     if meat_types:
         query = query.filter(Item.meat_types.any(MeatType.code.in_(meat_types)))
+
+    if categories:
+        query = query.filter(Item.category.in_(categories))
 
     return (
         query.order_by(Item.category.asc().nulls_last(), Item.name.asc())
@@ -56,3 +60,14 @@ def pdf_list_items(db: Session) -> list[ItemAllergenView]:
         )
         for i in items
     ]
+    
+def list_categories(db: Session) -> list[str]:
+    """Query all distinct, non-null item categories."""
+    results = (
+        db.query(Item.category)
+        .filter(Item.category.isnot(None))
+        .distinct()
+        .order_by(Item.category.asc())
+        .all()
+    )
+    return [row[0] for row in results]

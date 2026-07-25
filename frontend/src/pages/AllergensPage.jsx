@@ -30,6 +30,9 @@ function AllergensPage() {
     return <p className="loading-message">{t.loading}</p>;
   }
 
+  const uncategorizedLabel = language === 'nl' ? 'Overig' : 'Uncategorized';
+  let lastCategory = null;
+
   return (
     <div className="app">
       {/* Desktop: table view */}
@@ -37,7 +40,7 @@ function AllergensPage() {
         <table className="allergen-matrix">
           <thead>
             <tr>
-              <th className="matrix-corner">{itemLabel}</th>
+              <th className="matrix-corner"></th>
               {allergens.map((allergen) => (
                 <th key={allergen.id} className="matrix-allergen-header">
                   <img
@@ -64,21 +67,35 @@ function AllergensPage() {
             {items.map((item) => {
               const itemAllergenIds = item.allergens.map((a) => a.id);
               const itemMeatTypeIds = item.meat_types.map((m) => m.id);
+              const category = item.category || uncategorizedLabel;
+              const showCategoryHeader = category !== lastCategory;
+              lastCategory = category;
+
+              const columnCount = 1 + allergens.length + (meatTrackingEnabled ? meatTypes.length : 0);
 
               return (
-                <tr key={item.id}>
-                  <td className="matrix-item-name">{item.name}</td>
-                  {allergens.map((allergen) => (
-                    <td key={allergen.id} className="matrix-cell">
-                      {itemAllergenIds.includes(allergen.id) ? '●' : ''}
-                    </td>
-                  ))}
-                  {meatTrackingEnabled && meatTypes.map((meatType) => (
-                    <td key={`meat-${meatType.id}`} className="matrix-cell">
-                      {itemMeatTypeIds.includes(meatType.id) ? '●' : ''}
-                    </td>
-                  ))}
-                </tr>
+                <>
+                  {showCategoryHeader && (
+                    <tr key={`category-${category}`} className="matrix-category-row">
+                      <td colSpan={columnCount} className="matrix-category-label">
+                        {category}
+                      </td>
+                    </tr>
+                  )}
+                  <tr key={item.id}>
+                    <td className="matrix-item-name">{item.name}</td>
+                    {allergens.map((allergen) => (
+                      <td key={allergen.id} className="matrix-cell">
+                        {itemAllergenIds.includes(allergen.id) ? '●' : ''}
+                      </td>
+                    ))}
+                    {meatTrackingEnabled && meatTypes.map((meatType) => (
+                      <td key={`meat-${meatType.id}`} className="matrix-cell">
+                        {itemMeatTypeIds.includes(meatType.id) ? '●' : ''}
+                      </td>
+                    ))}
+                  </tr>
+                </>
               );
             })}
           </tbody>
@@ -87,38 +104,56 @@ function AllergensPage() {
 
       {/* Mobile: card view */}
       <div className="matrix-mobile-view">
-        {items.map((item) => (
-          <div key={item.id} className="item-card">
-            <span className="item-card-name">{item.name}</span>
+        {items.map((item) => {
+          const category = item.category || uncategorizedLabel;
+          const showCategoryHeader = category !== lastCategory;
+          lastCategory = category;
 
-            {item.allergens.length > 0 ? (
-              <div className="item-card-tags">
-                {item.allergens.map((allergen) => (
-                  <span key={allergen.id} className="item-card-tag">
-                    <img
-                      src={`http://localhost:8000/static/icons/${allergen.code}.png`}
-                      alt={language === 'nl' ? allergen.description_nl : allergen.description_en}
-                      className="item-card-tag-icon"
-                    />
-                    {language === 'nl' ? allergen.description_nl : allergen.description_en}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p className="no-allergens">{t.noAllergens}</p>
-            )}
+          return (
+            <>
+              {showCategoryHeader && (
+                <h2 key={`mobile-category-${category}`} className="mobile-category-label">
+                  {category}
+                </h2>
+              )}
+              <div key={item.id} className="item-card">
+                <span className="item-card-name">{item.name}</span>
 
-            {meatTrackingEnabled && item.meat_types.length > 0 && (
-              <div className="item-card-tags item-card-meat-tags">
-                {item.meat_types.map((meatType) => (
-                  <span key={meatType.id} className="item-card-tag item-card-meat-tag">
-                    {language === 'nl' ? meatType.description_nl : meatType.description_en}
-                  </span>
-                ))}
+                {item.allergens.length > 0 ? (
+                  <div className="item-card-tags">
+                    {item.allergens.map((allergen) => (
+                      <span key={allergen.id} className="item-card-tag">
+                        <img
+                          src={`http://localhost:8000/static/icons/${allergen.code}.png`}
+                          alt={language === 'nl' ? allergen.description_nl : allergen.description_en}
+                          className="item-card-tag-icon"
+                        />
+                        {language === 'nl' ? allergen.description_nl : allergen.description_en}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="no-allergens">{t.noAllergens}</p>
+                )}
+
+                {meatTrackingEnabled && item.meat_types.length > 0 && (
+                  <div className="item-card-tags item-card-meat-tags">
+                    {item.meat_types.map((meatType) => (
+                      <span key={meatType.id} className="item-card-tag item-card-meat-tag">
+                        <img
+                          src={`http://localhost:8000/static/icons/meat/${meatType.code}.png`}
+                          alt={language === 'nl' ? meatType.description_nl : meatType.description_en}
+                          className="item-card-tag-icon"
+                        />
+                        {language === 'nl' ? meatType.description_nl : meatType.description_en}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        ))}
+            </>
+          );
+        })}
       </div>
 
       <div className="legend-section">

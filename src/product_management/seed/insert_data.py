@@ -86,16 +86,12 @@ def load_items(db: Session) -> None:
             for meat_type in db.query(MeatType).all()
         }
 
-    # To use real data, create items.py in the same directory of this module
-    # and create a JSON structure like SAMPLE_ITEMS.
     try:
         from src.product_management.seed.items import items
         data_source = items
     except ImportError:
         print("Real data not found. Loading sample data...")
 
-    # To use real meat type data, create item_meat.py in the same
-    # directory as this module, with the same structure as SAMPLE_ITEM_MEAT_TYPES.
     try:
         from src.product_management.seed.item_meat import item_meat
         meat_data_source = item_meat
@@ -112,7 +108,7 @@ def load_items(db: Session) -> None:
         if db.query(Item).filter_by(name=name).first():
             continue
 
-        item = Item(name=name)
+        item = Item(name=name, category=category_data_source.get(name))
 
         for code in allergen_codes:
             item.allergens.append(allergens_by_code[code])
