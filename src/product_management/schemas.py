@@ -2,6 +2,12 @@
 
 from pydantic import BaseModel, ConfigDict
 
+
+class ConfigResponse(BaseModel):
+    item_label_en: str
+    item_label_nl: str
+
+
 class AllergenResponse(BaseModel):
     id: int
     code: str

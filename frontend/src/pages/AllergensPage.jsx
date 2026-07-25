@@ -5,18 +5,21 @@ function AllergensPage() {
   const { language, t } = useLanguage();
   const [allergens, setAllergens] = useState([]);
   const [items, setItems] = useState([]);
+  const [itemLabel, setItemLabel] = useState('Item');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       fetch('http://localhost:8000/allergens').then(res => res.json()),
       fetch('http://localhost:8000/items').then(res => res.json()),
-    ]).then(([allergensData, itemsData]) => {
+      fetch('http://localhost:8000/config').then(res => res.json()),
+    ]).then(([allergensData, itemsData, configData]) => {
       setAllergens(allergensData);
       setItems(itemsData);
+      setItemLabel(language === 'nl' ? configData.item_label_nl : configData.item_label_en);
       setIsLoading(false);
     });
-  }, []);
+  }, [language]);
 
   if (isLoading) {
     return <p className="loading-message">{t.loading}</p>;
@@ -28,7 +31,7 @@ function AllergensPage() {
         <table className="allergen-matrix">
           <thead>
             <tr>
-              <th className="matrix-corner">Item</th>
+              <th className="matrix-corner">{itemLabel}</th>
               {allergens.map((allergen) => (
                 <th key={allergen.id} className="matrix-allergen-header">
                   <img

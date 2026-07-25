@@ -7,7 +7,7 @@ from src.product_management.seed.insert_data import load_allergens, load_meat_ty
 from src.product_management.core.database import SessionLocal, engine
 from src.product_management.core.config import ENABLE_MEAT_TRACKING
 from src.product_management.models import Base
-from src.product_management.routers import allergens, health
+from src.product_management.routers import items, allergens, health, config
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -39,3 +39,4 @@ app.add_middleware(
 app.include_router(items.router)
 app.include_router(allergens.router)
 app.include_router(health.router)
+app.include_router(config.router)

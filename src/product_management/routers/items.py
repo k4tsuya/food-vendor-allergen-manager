@@ -9,6 +9,7 @@ from src.product_management.core.database import get_db
 from src.product_management.schemas import ItemResponse
 from src.product_management.queries import list_items, get_gluten_free_items, pdf_list_items
 from src.product_management.pdf_generator import AllergenMatrixPDF
+from src.product_management.core.config import ITEM_LABEL
 
 router = APIRouter()
 
@@ -41,6 +42,7 @@ def download_items_pdf(language: str = "nl", db: Session = Depends(get_db)):
         data=items,
         output_path=str(file_path),
         language=language,
+        item_label=ITEM_LABEL[language],
     )
 
     return FileResponse(
