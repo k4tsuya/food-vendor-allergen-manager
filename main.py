@@ -2,8 +2,8 @@
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from src.product_management.routers import items, allergens, health
-from src.product_management.seed.insert_data import load_allergens, load_meat_types, load_items
+from src.product_management.routers import items, allergens, health, config, meat_types, auth
+from src.product_management.seed.insert_data import load_allergens, load_meat_types, load_items, load_admin
 from src.product_management.core.database import SessionLocal, engine
 from src.product_management.core.config import ENABLE_MEAT_TRACKING
 from src.product_management.models import Base
@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
         if ENABLE_MEAT_TRACKING:
             load_meat_types(db)
         load_items(db)
-
+        load_admin(db)
     yield
 
 
@@ -41,3 +41,4 @@ app.include_router(allergens.router)
 app.include_router(health.router)
 app.include_router(config.router)
 app.include_router(meat_types.router)
+app.include_router(auth.router)

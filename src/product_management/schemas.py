@@ -41,3 +41,12 @@ class ItemResponse(BaseModel):
 class ItemAllergenView(BaseModel):
     name: str
     allergens: list[str]
+    
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"

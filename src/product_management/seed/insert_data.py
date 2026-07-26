@@ -121,3 +121,23 @@ def load_items(db: Session) -> None:
         db.add(item)
 
     db.commit()
+    
+import os
+from src.product_management.models import Admin
+from src.product_management.core.security import hash_password
+
+
+def load_admin(db: Session) -> None:
+    """Create the initial admin account from .env, if it doesn't already exist."""
+    username = os.getenv("ADMIN_USERNAME")
+    password = os.getenv("ADMIN_PASSWORD")
+
+    if not username or not password:
+        print("ADMIN_USERNAME/ADMIN_PASSWORD not set in .env — skipping admin seeding.")
+        return
+
+    if db.query(Admin).filter_by(username=username).first():
+        return
+
+    db.add(Admin(username=username, hashed_password=hash_password(password)))
+    db.commit()

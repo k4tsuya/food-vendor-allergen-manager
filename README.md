@@ -58,7 +58,7 @@ This approach:
 
 The same pattern (a dedicated reference table + many‑to‑many relationship) is reused for **meat types** — an optional feature for tracking which meats (pork, beef, chicken, turkey, horse, fish, lamb) are present in an item. See **Feature Flags** below.
 
-Items also have an optional **category** (e.g. "Snacks", "Sauces", "Drinks"). Unlike allergens and meat types, category is deliberately **free text** rather than a fixed reference list — different vendor types (snackbar, bakery, drinks stand) need wildly different categories, so a hardcoded list wouldn't generalize well. One item belongs to exactly one category.
+Items also have an optional **category** (e.g. "Snacks", "Bakery"). Unlike allergens and meat types, categories are vendor-defined rather than a fixed EU-regulated list — different vendor types (snackbar, bakery, drinks stand) need wildly different categories. To support both Dutch and English while avoiding duplicate/inconsistent translations, each item stores a `category_key` (e.g. `"snacks"`), and the actual translated labels live in a small vendor-editable dictionary in `core/config.py` — the same reference-table idea as allergens/meat types, just as a config dictionary instead of a database table, since categories are vendor-defined rather than seeded application data. One item belongs to exactly one category.
 
 ---
 
@@ -182,11 +182,18 @@ ITEM_LABEL = {
     "en": "Item",
     "nl": "Item",
 }
+
+CATEGORY_LABELS = {
+    "snacks": {"en": "Snacks", "nl": "Snacks"},
+    "bakery": {"en": "Bakery", "nl": "Bakkerij"},
+}
 ```
 
 **Meat tracking** links items to the meat types they contain, using the same many‑to‑many pattern as allergens. It's `False` by default — when disabled, meat reference data is never seeded and no meat types get assigned to items, but the underlying database tables still exist (created for every model regardless of the flag).
 
 **Item label** controls the terminology shown in the matrix header and the exported PDF — e.g. a bakery could set this to `"Product"`, or a restaurant to `{"en": "Dish", "nl": "Gerecht"}`. This value is the single source of truth: it's exposed via the `/config` endpoint, and both the frontend and the PDF generator fetch/use it from there, so the two can never drift out of sync with each other.
+
+**Category labels** map each item's `category_key` to a Dutch and English display name. A vendor adds a new category by adding an entry here — the key (e.g. `"snacks"`) is what gets stored on each `Item` and used for filtering, while the `en`/`nl` values are what's actually displayed. The `/categories` endpoint returns every key defined here, regardless of whether any item currently uses it yet, so the filter bar can list all configured categories from the start.
 
 ---
 
@@ -282,11 +289,11 @@ Both servers must be running at the same time for the frontend to fetch data fro
   * `search` – case-insensitive partial match on item name
   * `exclude_allergens` – exclude items containing any of the given allergen codes (repeatable, e.g. `?exclude_allergens=gluten&exclude_allergens=milk`)
   * `meat_types` – only include items containing at least one of the given meat type codes (repeatable)
-  * `categories` – only include items in one of the given categories (repeatable)
+  * `categories` – only include items whose `category_key` matches one of the given values (repeatable)
 * `GET /gluten-free` – list items with no gluten allergen (paginated)
 * `GET /allergens` – list all known allergens
 * `GET /meat-types` – list all known meat types (empty if meat tracking is disabled)
-* `GET /categories` – list all distinct categories currently assigned to at least one item
+* `GET /categories` – list all category keys defined in `core/config.py`, regardless of whether any item currently uses them
 * `GET /items/pdf?language=nl|en` – generate a downloadable PDF file of the allergen matrix
 * `GET /health` – reports whether the API and database are reachable
 
@@ -339,7 +346,7 @@ Planned extensions include:
 * `POST` / `PUT` / `DELETE` endpoints for items, allergens, and meat types
 * An authenticated Admin/Manager area in the frontend for managing a vendor's own data
 * A "clean start" flow, letting a new vendor populate their own data from the UI instead of editing seed files
-* Category management from the UI — categories are currently free text, assigned only via seed files, with no way to create/rename them from the app yet
+* Category management from the UI — categories are currently defined via `core/config.py` (key + translation), with no way to create/rename them from the app yet
 * Support for **"may contain traces of"** allergens
 * PostgreSQL as a documented, tested alternative to SQLite for hosted deployments
 
@@ -400,6 +407,27 @@ item_meat = {
 ```
 
 If this file isn't present, the application falls back to a small internal sample dataset. `src/product_management/seed/item_meat.py` is also listed in `.gitignore`.
+
+### Using real category assignments (optional)
+
+You can similarly provide real per-item category assignments via a file excluded from version control.
+
+Create a file at:
+
+```
+src/product_management/seed/item_categories.py
+```
+
+Define a variable called `item_categories` with the same structure as the sample data, using category **keys** (not display text — see **Feature Flags** for how keys map to translated labels):
+
+```python
+item_categories = {
+    "Example item": "snacks",
+    "Another item": "bakery",
+}
+```
+
+If this file isn't present, the application falls back to a small internal sample dataset. `src/product_management/seed/item_categories.py` is also listed in `.gitignore`.
 
 ---
 

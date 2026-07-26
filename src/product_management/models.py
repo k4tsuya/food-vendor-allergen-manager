@@ -63,8 +63,6 @@ class Item(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     category_key: Mapped[str] = mapped_column(String(100), nullable=True)
-    units_per_box: Mapped[int] = mapped_column(nullable=True)
-    price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=True)
     
     
     allergens: Mapped[list[Allergen]] = relationship(
@@ -75,3 +73,10 @@ class Item(Base):
         secondary=item_meat_type,
         back_populates="items",
     )
+
+class Admin(Base):
+    __tablename__ = "admins"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
