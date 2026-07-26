@@ -1,5 +1,5 @@
 """Queries for the item management app."""
-from src.product_management.schemas import ItemAllergenView
+from src.product_management.schemas import ItemAllergenView, ItemCreate, ItemUpdate
 from src.product_management.models import Item, Allergen, MeatType
 from sqlalchemy.orm import Session
 
@@ -60,3 +60,78 @@ def pdf_list_items(db: Session) -> list[ItemAllergenView]:
         )
         for i in items
     ]
+
+
+def get_item(db: Session, item_id: int) -> Item | None:
+    """Query a single item by id."""
+    return db.query(Item).filter_by(id=item_id).first()
+
+
+
+
+def create_item(db: Session, data: "ItemCreate") -> tuple[Item, list[str]]:
+    """Insert a new item, linking existing allergens and meat types by code."""
+    item = Item(name=data.name, category_key=data.category_key)
+    warnings: list[str] = []
+
+    for code in data.allergen_codes:
+        allergen = db.query(Allergen).filter_by(code=code).first()
+        if allergen:
+            item.allergens.append(allergen)
+        else:
+            warnings.append(f"Unknown allergen code '{code}' was skipped.")
+
+    for code in data.meat_type_codes:
+        meat_type = db.query(MeatType).filter_by(code=code).first()
+        if meat_type:
+            item.meat_types.append(meat_type)
+        else:
+            warnings.append(f"Unknown meat type code '{code}' was skipped.")
+
+    db.add(item)
+    db.commit()
+    db.refresh(item)
+    return item, warnings
+
+
+def update_item(db: Session, item_id: int, data: "ItemUpdate") -> tuple[Item, list[str]] | None:
+    """Update an existing item's fields, allergens, and meat types."""
+    item = get_item(db, item_id)
+    if item is None:
+        return None
+
+    item.name = data.name
+    item.category_key = data.category_key
+
+    warnings: list[str] = []
+    resolved_allergens = []
+    for code in data.allergen_codes:
+        allergen = db.query(Allergen).filter_by(code=code).first()
+        if allergen:
+            resolved_allergens.append(allergen)
+        else:
+            warnings.append(f"Unknown allergen code '{code}' was skipped.")
+    item.allergens = resolved_allergens
+
+    resolved_meat_types = []
+    for code in data.meat_type_codes:
+        meat_type = db.query(MeatType).filter_by(code=code).first()
+        if meat_type:
+            resolved_meat_types.append(meat_type)
+        else:
+            warnings.append(f"Unknown meat type code '{code}' was skipped.")
+    item.meat_types = resolved_meat_types
+
+    db.commit()
+    db.refresh(item)
+    return item, warnings
+
+def delete_item(db: Session, item_id: int) -> bool:
+    """Delete an item by id. Returns True if deleted, False if not found."""
+    item = get_item(db, item_id)
+    if item is None:
+        return False
+
+    db.delete(item)
+    db.commit()
+    return True

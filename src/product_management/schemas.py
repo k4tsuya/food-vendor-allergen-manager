@@ -50,3 +50,21 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    
+class ItemCreate(BaseModel):
+    name: str
+    category_key: str | None = None
+    allergen_codes: list[str] = []
+    meat_type_codes: list[str] = []
+
+
+class ItemUpdate(BaseModel):
+    name: str
+    category_key: str | None = None
+    allergen_codes: list[str] = []
+    meat_type_codes: list[str] = []
+
+
+class ItemWriteResponse(BaseModel):
+    item: ItemResponse
+    warnings: list[str] = []

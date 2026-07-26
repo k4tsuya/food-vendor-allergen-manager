@@ -1,7 +1,7 @@
 """Routes for items, gluten-free filtering, and PDF export."""
 
 from pathlib import Path
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import Literal
@@ -9,9 +9,11 @@ from typing import Literal
 
 from src.product_management.core.database import get_db
 from src.product_management.core.config import CATEGORY_LABELS
-from src.product_management.schemas import ItemResponse
+from src.product_management.core.security import get_current_admin
+from src.product_management.models import Admin
+from src.product_management.schemas import ItemResponse, ItemCreate, ItemUpdate, ItemWriteResponse
 from src.product_management.queries import (
-    list_items, get_gluten_free_items, pdf_list_items)
+    list_items, get_gluten_free_items, pdf_list_items, create_item, update_item, delete_item)
 from src.product_management.pdf_generator import AllergenMatrixPDF
 
 router = APIRouter()
@@ -74,3 +76,45 @@ def download_items_pdf(language: Literal["en", "nl"] = "nl", db: Session = Depen
 def list_all_categories(db: Session = Depends(get_db)):
     """Return all distinct item categories currently in use."""
     return list(CATEGORY_LABELS.keys())
+
+
+
+@router.post("/items", response_model=ItemWriteResponse, status_code=status.HTTP_201_CREATED)
+def create_new_item(
+    data: ItemCreate,
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Create a new item. Requires authentication."""
+    item, warnings = create_item(db, data)
+    return ItemWriteResponse(item=item, warnings=warnings)
+
+
+@router.put("/items/{item_id}", response_model=ItemWriteResponse)
+def update_existing_item(
+    item_id: int,
+    data: ItemUpdate,
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Update an existing item. Requires authentication."""
+    result = update_item(db, item_id, data)
+
+    if result is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+
+    item, warnings = result
+    return ItemWriteResponse(item=item, warnings=warnings)
+
+
+@router.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_existing_item(
+    item_id: int,
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Delete an item. Requires authentication."""
+    deleted = delete_item(db, item_id)
+
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
