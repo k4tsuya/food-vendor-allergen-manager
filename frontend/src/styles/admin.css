@@ -1,0 +1,120 @@
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.admin-resource-section {
+  margin-bottom: 2.5rem;
+}
+
+.admin-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #E5E3DC;
+}
+
+.admin-section-title {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.admin-add-button {
+  width: auto;
+  padding: 0.6rem 1.25rem;
+}
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 400px;
+  padding: 1.25rem;
+  border: 1px solid #E5E3DC;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.admin-form-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.admin-cancel {
+  background: none;
+  border: none;
+  color: #6B6B63;
+  cursor: pointer;
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #E5E3DC;
+}
+
+.admin-row-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.admin-link-button {
+  background: none;
+  border: none;
+  color: #1F6F63;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.admin-delete {
+  color: #B3261E;
+}
+
+.admin-landing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.admin-landing-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.25rem;
+  border: 1px solid #E5E3DC;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.admin-landing-card:hover {
+  border-color: #1F6F63;
+  transform: translateY(-2px);
+}
+
+.admin-landing-card-title {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #1C1C1A;
+}
+
+.admin-landing-card-desc {
+  font-size: 0.85rem;
+  color: #6B6B63;
+}

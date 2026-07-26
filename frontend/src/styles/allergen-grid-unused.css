@@ -1,0 +1,41 @@
+/*
+  NOTE: These rules don't appear to be used by any current component —
+  they're from the earlier "grid of allergen cards" layout, before the
+  allergen matrix table replaced it. Kept here, separated out, so you
+  can confirm and delete this file (and its import) if you agree it's
+  no longer needed, rather than silently losing it in the CSS split.
+*/
+
+.allergen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.allergen-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1px solid #E5E3DC;
+  border-radius: 8px;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.allergen-card:hover {
+  border-color: #1F6F63;
+  transform: translateY(-2px);
+}
+
+.allergen-card-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.allergen-card-label {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #1C1C1A;
+}
