@@ -118,3 +118,42 @@
   font-size: 0.85rem;
   color: #6B6B63;
 }
+
+.admin-warnings {
+  padding: 0.75rem;
+  background-color: #FBEBD4;
+  border: 1px solid #E8A33D;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-landing-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 2rem 0 1.25rem;
+  color: #6B6B63;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-landing-divider::before,
+.admin-landing-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: #E5E3DC;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1.25rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #E5E3DC;
+}

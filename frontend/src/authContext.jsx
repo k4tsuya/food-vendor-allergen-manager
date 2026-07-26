@@ -1,12 +1,33 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
+const API_BASE = 'http://localhost:8000';
+
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('admin_token'));
+  const [isValidating, setIsValidating] = useState(true);
+
+  useEffect(() => {
+    if (!token) {
+      setIsValidating(false);
+      return;
+    }
+
+    fetch(`${API_BASE}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          localStorage.removeItem('admin_token');
+          setToken(null);
+        }
+      })
+      .finally(() => setIsValidating(false));
+  }, []);
 
   const login = async (username, password) => {
-    const response = await fetch('http://localhost:8000/auth/login', {
+    const response = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
@@ -27,7 +48,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ token, login, logout, isAuthenticated: !!token, isValidating }}>
       {children}
     </AuthContext.Provider>
   );
