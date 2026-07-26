@@ -9,7 +9,10 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from src.product_management.core.database import get_db
 from src.product_management.models import Admin
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
+limiter = Limiter(key_func=get_remote_address)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 

@@ -10,6 +10,10 @@ from src.product_management.routers import items, allergens, health, config, mea
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from src.product_management.queries import get_settings
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from src.product_management.core.security import limiter
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -37,6 +41,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(items.router)
 app.include_router(allergens.router)

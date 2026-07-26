@@ -1,4 +1,4 @@
-# Food Vendor Allergen Manager
+# Snack Bar Product & Allergen Management
 
 ## 📌 Project Overview
 
@@ -12,7 +12,7 @@ As a food business, we are legally required to:
 
 Managing this information manually quickly became error‑prone and time‑consuming. This project is my attempt to **solve that real-world problem with software**, while at the same time **learning and exploring new backend and frontend technologies**.
 
-The project was originally built around "products," but has since been generalized to **"items"** — a deliberate step toward making this usable by any food vendor (bakery, restaurant, butcher, etc.), not just a snackbar. See **Feature Flags** below for how vendor-specific terminology is configured.
+The project was originally built around "products," but has since been generalized to **"items"** — a step toward making this usable by any food vendor (bakery, restaurant, butcher, etc.), not just a snackbar. It now also includes a full **admin area**, so a vendor can manage their own data without touching code.
 
 ---
 
@@ -20,7 +20,7 @@ The project was originally built around "products," but has since been generaliz
 
 This project is **actively under development** and is being built step by step as a learning project.
 
-It is intended to become part of my **developer portfolio**, showcasing how I approach real-world backend problems, data modeling, frontend development, and new technologies.
+It is intended to become part of my **developer portfolio**, showcasing how I approach real-world backend problems, data modeling, authentication, and frontend development.
 
 ---
 
@@ -30,6 +30,7 @@ It is intended to become part of my **developer portfolio**, showcasing how I ap
 * Link allergens to items in a flexible way
 * Create a clean and understandable backend foundation
 * Build a working, presentable frontend to consume that backend
+* Let a vendor manage their own data through an authenticated admin area, not just seed files
 * Learn and practice technologies I have not used deeply before
 * Build a meaningful portfolio project based on real business needs
 * Generalize the project so any food vendor can use their own deployment of it
@@ -56,9 +57,9 @@ This approach:
 * Avoids fragile database schemas
 * Makes the system easy to extend in the future (e.g. "may contain traces of")
 
-The same pattern (a dedicated reference table + many‑to‑many relationship) is reused for **meat types** — an optional feature for tracking which meats (pork, beef, chicken, turkey, horse, fish, lamb) are present in an item. See **Feature Flags** below.
+The same pattern (a dedicated reference table + many‑to‑many relationship) is reused for **meat types** — an optional feature for tracking which meats (pork, beef, chicken, turkey, horse, fish, lamb) are present in an item.
 
-Items also have an optional **category** (e.g. "Snacks", "Bakery"). Unlike allergens and meat types, categories are vendor-defined rather than a fixed EU-regulated list — different vendor types (snackbar, bakery, drinks stand) need wildly different categories. To support both Dutch and English while avoiding duplicate/inconsistent translations, each item stores a `category_key` (e.g. `"snacks"`), and the actual translated labels live in a small vendor-editable dictionary in `core/config.py` — the same reference-table idea as allergens/meat types, just as a config dictionary instead of a database table, since categories are vendor-defined rather than seeded application data. One item belongs to exactly one category.
+**Categories** (e.g. "Snacks", "Bakery") work slightly differently: each item has at most one category, referenced by a `category_key` string matching a `Category` record's `code`. Categories, allergens, and meat types are all fully manageable through the admin area — an admin can create, rename, or delete any of them without touching code.
 
 ---
 
@@ -70,15 +71,18 @@ I intentionally chose this tech stack to **learn and explore different tools** b
 * **Python 3.13**
 * **FastAPI** – modern, fast backend framework
 * **SQLAlchemy 2.0** – ORM with explicit, type‑safe models
-* **SQLite** – local database for development (see **Database & Environment Configuration** for other options)
+* **SQLite** – local database for development (see **Environment Configuration** for other options)
 * **Alembic** – database schema migrations
 * **Pydantic** – data validation and API schemas
+* **passlib (bcrypt)** – password hashing for the admin account
+* **python-jose** – JWT creation and verification
+* **slowapi** – rate limiting on the login endpoint
 * **pytest** – automated testing, with an isolated in-memory test database
 
 **Frontend**
 * **React** – component-based UI library
 * **Vite** – frontend build tool and dev server
-* **React Router** – client-side routing setup
+* **React Router** – client-side routing, including nested/protected admin routes
 
 Although I have previous experience with **Django + DRF**, this project focuses on:
 
@@ -86,6 +90,7 @@ Although I have previous experience with **Django + DRF**, this project focuses 
 * Explicit database modeling
 * Clear separation between models, schemas, and application logic
 * Learning frontend development from the ground up with React
+* Practicing authentication and building an authenticated admin area in this stack
 
 ---
 
@@ -95,14 +100,16 @@ Although I have previous experience with **Django + DRF**, this project focuses 
 src/product_management/
 ├── core/
 │   ├── database.py       # DB engine/session setup + get_db dependency, reads DATABASE_URL from .env
-│   └── config.py           # Feature flags and vendor config (ENABLE_MEAT_TRACKING, ITEM_LABEL)
+│   └── security.py         # Password hashing, JWT creation/verification, rate limiter, auth dependency
 ├── routers/
-│   ├── items.py             # /items, /gluten-free, /items/pdf routes (with search/filter support)
-│   ├── allergens.py          # /allergens route
-│   ├── meat_types.py          # /meat-types route
-│   ├── health.py               # /health route
-│   └── config.py                 # /config route, exposes vendor label config to the frontend
-├── models.py               # SQLAlchemy models (Item, Allergen, MeatType)
+│   ├── items.py             # /items, /gluten-free, /items/pdf routes (search/filter, CRUD)
+│   ├── allergens.py          # /allergens routes (public read, authenticated write)
+│   ├── meat_types.py          # /meat-types routes (public read, authenticated write)
+│   ├── categories.py           # /categories routes (public read, authenticated write)
+│   ├── config.py                # /config route — app-wide settings (public read, authenticated write)
+│   ├── auth.py                    # /auth/login, /auth/me
+│   └── health.py                    # /health route
+├── models.py               # SQLAlchemy models (Item, Allergen, MeatType, Category, Admin, AppSettings)
 ├── schemas.py               # Pydantic schemas
 ├── queries.py                # DB query functions
 ├── seed/
@@ -113,7 +120,7 @@ src/product_management/
 │   └── meat_types.py                 # Meat type reference data
 ├── pdf_generator.py           # PDF export logic
 └── static/
-    └── icons/                # Allergen icons, served via FastAPI static files
+    └── icons/                # Allergen and meat type icons, served via FastAPI static files
 
 alembic/
 ├── env.py                # Migration environment config, reads models + DATABASE_URL
@@ -125,7 +132,7 @@ requirements.txt             # Backend dependencies (pip freeze output)
 .env.example                   # Template for required environment variables
 ```
 
-`main.py`, at the project root, only handles app setup, middleware, static files, startup seeding, and wiring the routers together via `app.include_router(...)` — no route logic lives there directly.
+`main.py`, at the project root, only handles app setup, middleware, static files, rate limiter registration, startup seeding, and wiring the routers together via `app.include_router(...)` — no route logic lives there directly.
 
 ---
 
@@ -134,15 +141,29 @@ requirements.txt             # Backend dependencies (pip freeze output)
 ```
 frontend/src/
 ├── components/
-│   ├── Navbar.jsx        # Top navigation bar: clickable title/home link, PDF download, language switcher
-│   ├── Footer.jsx          # Page footer
-│   └── FilterBar.jsx        # Search box + allergen/meat type/category filter checkboxes
+│   ├── Navbar.jsx        # Clickable brand/home link, PDF download, language switcher
+│   ├── Footer.jsx          # Company name (from settings) + auto-updating year
+│   ├── FilterBar.jsx        # Search box + allergen/meat type/category filter checkboxes
+│   ├── Modal.jsx              # Reusable popup used throughout the admin area
+│   ├── RequireAuth.jsx          # Route guard — redirects to /login if not authenticated
+│   ├── AdminLayout.jsx            # Shared admin header/logout + <Outlet /> for nested admin pages
+│   └── CodeLabelAdmin.jsx           # Reusable list/create/edit/delete UI for code+translation resources
+│                                      (used for allergens, meat types, and categories)
 ├── pages/
-│   └── AllergensPage.jsx    # "/" — the item x allergen matrix view, plus legend
-├── localization.jsx           # React Context: current language, translations, and the language switcher state
-├── App.jsx                     # Assembles layout and defines routes
-├── App.css                      # App-wide styling
-└── main.jsx                      # App entry point, wraps App in BrowserRouter + LanguageProvider
+│   ├── AllergensPage.jsx     # "/" — the item x allergen (+ meat type) matrix, with filtering
+│   ├── LoginPage.jsx           # "/login" — admin login form
+│   ├── AdminLandingPage.jsx      # "/admin" — links to each admin section
+│   ├── AdminItemsPage.jsx          # "/admin/items" — item management (name, category, allergens, meats)
+│   ├── AdminCategoriesPage.jsx       # "/admin/categories" — uses CodeLabelAdmin
+│   ├── AdminAllergensPage.jsx          # "/admin/allergens" — uses CodeLabelAdmin
+│   ├── AdminMeatTypesPage.jsx            # "/admin/meat-types" — uses CodeLabelAdmin
+│   └── AdminSettingsPage.jsx               # "/admin/settings" — app-wide settings form
+├── styles/                   # CSS split by concern (base, navbar, matrix, filterbar, auth, admin, modal)
+├── localization.jsx           # React Context: current language, translations, language switcher state
+├── authContext.jsx              # React Context: JWT token, login/logout, token validation on load
+├── api.js                         # Shared authenticated-fetch helper for admin requests
+├── App.jsx                          # Assembles layout and defines routes (including nested admin routes)
+└── main.jsx                           # App entry point, wraps App in BrowserRouter + providers
 ```
 
 ---
@@ -158,48 +179,53 @@ The application automatically seeds:
 * Soy
 * Mustard
 
+### Categories
+
+* Snacks
+* Bakery
+
 ### Items
 
-* **Frikandel** → gluten, soy, mustard
-* **Kroket** → gluten, milk
-* **Bread** → gluten
-* **Fishstick** → fish
+* **Frikandel** → gluten, soy, mustard, category: Snacks
+* **Kroket** → gluten, milk, category: Snacks
+* **Bread** → gluten, category: Bakery
+* **Fishstick** → fish, category: Snacks
 
-This data is inserted on application startup and is safe to run multiple times.
+### Admin account
 
----
-
-## 🚩 Feature Flags
-
-Some features and terminology are configurable, since not every food vendor using this project needs the same things.
-
-Configuration lives in `src/product_management/core/config.py`:
-
-```python
-ENABLE_MEAT_TRACKING = False  # Set to True to enable meat tracking features
-
-ITEM_LABEL = {
-    "en": "Item",
-    "nl": "Item",
-}
-
-CATEGORY_LABELS = {
-    "snacks": {"en": "Snacks", "nl": "Snacks"},
-    "bakery": {"en": "Bakery", "nl": "Bakkerij"},
-}
-```
-
-**Meat tracking** links items to the meat types they contain, using the same many‑to‑many pattern as allergens. It's `False` by default — when disabled, meat reference data is never seeded and no meat types get assigned to items, but the underlying database tables still exist (created for every model regardless of the flag).
-
-**Item label** controls the terminology shown in the matrix header and the exported PDF — e.g. a bakery could set this to `"Product"`, or a restaurant to `{"en": "Dish", "nl": "Gerecht"}`. This value is the single source of truth: it's exposed via the `/config` endpoint, and both the frontend and the PDF generator fetch/use it from there, so the two can never drift out of sync with each other.
-
-**Category labels** map each item's `category_key` to a Dutch and English display name. A vendor adds a new category by adding an entry here — the key (e.g. `"snacks"`) is what gets stored on each `Item` and used for filtering, while the `en`/`nl` values are what's actually displayed. The `/categories` endpoint returns every key defined here, regardless of whether any item currently uses it yet, so the filter bar can list all configured categories from the start.
+A single admin account is seeded on first startup, from `ADMIN_USERNAME`/`ADMIN_PASSWORD` in `.env`. Its password is stored as a bcrypt hash — the plaintext value from `.env` is never stored anywhere. Re-running the seed does not reset an existing admin's password.
 
 ---
 
-## 🔐 Database & Environment Configuration
+## 🔐 Authentication & Admin Access
 
-Configuration that varies between environments (currently just the database connection) lives in a `.env` file, not hardcoded in the source code.
+The project has a single admin account (no multi-user roles) protecting all write operations.
+
+* **Login** — `POST /auth/login` with a username/password, returns a JWT access token (1 hour expiry)
+* **Protected routes** — every `POST`/`PUT`/`DELETE` endpoint requires a valid `Authorization: Bearer <token>` header
+* **Public reads** — `GET` endpoints (items, allergens, meat types, categories, config) remain open, since the public matrix page needs them without anyone logging in
+* **Password storage** — hashed with bcrypt via `passlib`, never stored or logged in plaintext
+* **Rate limiting** — `POST /auth/login` is limited to 5 attempts per minute per IP address (via `slowapi`), to make brute-force password guessing impractical
+* **Frontend session** — the JWT is stored in `localStorage` and validated against `GET /auth/me` on page load, so a stale or tampered token doesn't silently grant access to the admin UI
+
+---
+
+## 🚩 Settings
+
+App-wide settings are stored in the database (a single-row `AppSettings` table), not in source code — this means they're editable from the admin area at `/admin/settings` without redeploying.
+
+Current settings:
+
+* **Meat tracking** — whether meat type data is tracked and shown at all. Off by default; when off, meat reference data still has its table but nothing gets seeded or displayed.
+* **Company name** — shown in the site footer.
+* **Navbar brand (English / Dutch)** — the site title shown in the navbar, per language.
+* **Default language** — which language (`nl`/`en`) the public matrix page loads in by default.
+
+---
+
+## 🔐 Environment Configuration
+
+Configuration that varies between environments and secrets lives in a `.env` file, not hardcoded in the source code.
 
 Copy the template to create your own local config:
 
@@ -210,11 +236,19 @@ cp .env.example .env
 `.env.example`:
 ```
 DATABASE_URL=sqlite:///product_management.db
+SECRET_KEY=your-secret-key-here
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=your-password-here
 ```
 
-By default, the project runs against a local SQLite file — no separate database server required, good for local development or a small single-machine deployment. `DATABASE_URL` can be changed to point at a hosted PostgreSQL database instead for a more production-style setup; both are supported through the same `DATABASE_URL` value, since SQLAlchemy abstracts over the underlying database engine.
+Generate a real `SECRET_KEY` (used to sign JWTs) rather than leaving the placeholder:
+```bash
+python3 -c "import secrets; print(secrets.token_hex(32))"
+```
 
-`.env` is gitignored, since it's meant to hold local/real configuration. `.env.example` is committed as a template.
+By default, the project runs against a local SQLite file — no separate database server required. `DATABASE_URL` can be changed to point at a hosted PostgreSQL database instead for a more production-style setup; both are supported through the same variable, since SQLAlchemy abstracts over the underlying database engine.
+
+`.env` is gitignored. `.env.example` is committed as a template with placeholder values only.
 
 ---
 
@@ -252,8 +286,6 @@ cp .env.example .env
 alembic upgrade head
 ```
 
-Set the preferred **item label** and enable/disable **meat tracking** in `src/product_management/core/config.py` if desired (see **Feature Flags** above).
-
 Start the backend:
 
 ```bash
@@ -280,33 +312,42 @@ The frontend is now available at `http://localhost:5173`.
 
 Both servers must be running at the same time for the frontend to fetch data from the backend. CORS is configured on the backend to allow requests from `http://localhost:5173`.
 
+### 3. Logging into the admin area
+
+Go to `http://localhost:5173/login` and sign in with the `ADMIN_USERNAME`/`ADMIN_PASSWORD` values from your `.env` file.
+
 ---
 
 ## 🔍 Available Endpoints
 
-* `GET /items` – list items with their allergens and meat types. Supports:
-  * `limit` / `offset` – pagination
-  * `search` – case-insensitive partial match on item name
-  * `exclude_allergens` – exclude items containing any of the given allergen codes (repeatable, e.g. `?exclude_allergens=gluten&exclude_allergens=milk`)
-  * `meat_types` – only include items containing at least one of the given meat type codes (repeatable)
-  * `categories` – only include items whose `category_key` matches one of the given values (repeatable)
+**Public**
+* `GET /items` – list items with their allergens and meat types. Supports `limit`/`offset` (pagination), `search`, `exclude_allergens` (repeatable), `meat_types` (repeatable), `categories` (repeatable)
 * `GET /gluten-free` – list items with no gluten allergen (paginated)
 * `GET /allergens` – list all known allergens
 * `GET /meat-types` – list all known meat types (empty if meat tracking is disabled)
-* `GET /categories` – list all category keys defined in `core/config.py`, regardless of whether any item currently uses them
+* `GET /categories` – list all categories
 * `GET /items/pdf?language=nl|en` – generate a downloadable PDF file of the allergen matrix
+* `GET /config` – current app settings
 * `GET /health` – reports whether the API and database are reachable
+
+**Authentication**
+* `POST /auth/login` – authenticate, returns a JWT (rate limited: 5/minute per IP)
+* `GET /auth/me` – returns the current admin's identity if the token is valid
+
+**Admin-only (require a valid Bearer token)**
+* `POST` / `PUT` / `DELETE` on `/items/{id}`, `/allergens/{id}`, `/meat-types/{id}`, `/categories/{id}`
+* `PUT /config` – update app settings
 
 ---
 
 ## 🧭 Frontend Pages
 
-* `/` – **Allergen Matrix** page. A filter bar above the content lets someone search by name and filter by allergen (exclude), meat type, and category, refetching live as filters change. On wider screens, a table with items listed down the left and allergens (with icons) — plus meat type columns when meat tracking is enabled — across a sticky header row, marking which items contain what, grouped visually by category with section header rows. Below the table sits a legend explaining the marker, plus a labeled key listing every allergen by name and icon. On narrower screens, the table is replaced by a card-per-item layout instead (also grouped by category), since a wide multi-column table doesn't work well on small screens.
-* **Clickable title** — the navbar title links back to the homepage, a standard site navigation convention.
-* **Language switcher** — a button in the navbar toggles between Dutch and English at runtime, updating all translated text, allergen names, meat type names, and the item label immediately.
-* **Download PDF** – a navbar link that triggers the backend's `/items/pdf` endpoint, downloading the allergen matrix in the currently selected language.
-
-A dedicated item list page was considered but removed in favor of the matrix view, since it already conveys the same information (item names + their allergens) more directly.
+* `/` – **Allergen Matrix** page. A filter bar above the content lets someone search by name and filter by allergen (exclude), meat type, and category, refetching live as filters change. On wider screens, a table with items down the left and allergens (with icons) — plus meat type columns when enabled — across a sticky header row, grouped visually by category. On narrower screens, the table becomes a card-per-item layout instead.
+* `/login` – Admin login form.
+* `/admin` – Admin landing page, linking to each management section (Items, Settings, and grouped reference data: Categories, Allergens, Meat Types). Protected — redirects to `/login` if not authenticated.
+* `/admin/items` – Create, edit, and delete items: name, category (dropdown), allergens and meat types (checkboxes). Invalid codes can't be submitted through this UI, but the backend still validates and reports warnings if bypassed via direct API access.
+* `/admin/categories`, `/admin/allergens`, `/admin/meat-types` – Each uses the same reusable list/create/edit/delete UI, since all three share the same code + English/Dutch description shape.
+* `/admin/settings` – Update company name, navbar branding, default language, and the meat tracking toggle. Requires confirmation before saving, since these affect the whole site.
 
 ---
 
@@ -316,24 +357,22 @@ A dedicated item list page was considered but removed in favor of the matrix vie
 * React fundamentals: components, props, state, effects, conditional rendering
 * Connecting a React frontend to a FastAPI backend (CORS, fetch, serving static files)
 * Structuring a growing codebase into clear, single-purpose modules, including splitting routes into FastAPI routers
-* Client-side routing with React Router, and structuring an app into pages vs. reusable components
-* Combining data from multiple API endpoints in the frontend (items + allergens) to build a matrix view
-* CSS Grid and sticky positioning for responsive, scrollable layouts
-* React Context, for sharing state (like the current language) across components without prop drilling
-* Designing a single backend source of truth for configuration shared between a frontend and a generated PDF
+* Client-side routing with React Router, including nested and protected routes
+* Combining data from multiple API endpoints in the frontend to build a matrix view
+* CSS Grid, sticky positioning, and media queries for responsive, dual (table/card) layouts
+* React Context, for sharing state (language, auth) across components without prop drilling
 * Database migrations with Alembic, and why they matter once a project has real data to preserve
-* Managing environment-specific configuration (`.env`) instead of hardcoding values
-* Building responsive layouts with CSS media queries, including rendering two different structures (table vs. cards) for the same data depending on screen width
-* Writing composable SQLAlchemy queries with multiple optional filters (search, exclusion, inclusion) applied conditionally
-* Exploring controlled checkbox inputs and the "toggle a value in an array" state update pattern in React
-* Exploring `URLSearchParams` for building query strings from multiple filter values
-* Exploring separating "reference data" fetches (allergens, categories) from "filtered data" fetches (items) across multiple `useEffect` calls
+* Managing environment-specific configuration and secrets (`.env`) instead of hardcoding values
+* Building a reusable admin CRUD component shared across multiple resource types, instead of duplicating near-identical forms
+* Writing composable SQLAlchemy queries with multiple optional filters applied conditionally
+* Rate limiting a login endpoint against brute-force attacks
+* Testing an authenticated API with pytest fixtures, including handling stateful complications like rate limiter state leaking between tests
 
 ---
 
 ## 🤖 Learning React with AI
 
-I'm learning React as part of this project, and I've been using **Claude** as a learning tool throughout that process — asking it to explain concepts step by step (state, props, `.map()`, conditional rendering, etc.), review and refactor code, and help debug issues as they come up.
+I'm learning React and practicing JavaScript as part of this project. I've used **Claude** as a learning tool — for help when I got stuck on something specific, and for writing this documentation.
 
 I see this as similar to using a tutorial, documentation, or a mentor: the AI helps me understand *why* something works the way it does, but the implementation decisions, debugging, and understanding are still mine to build. I'm noting this openly here since transparency about how I learn and build matters to me, especially in a portfolio project.
 
@@ -343,12 +382,12 @@ I see this as similar to using a tutorial, documentation, or a mentor: the AI he
 
 Planned extensions include:
 
-* `POST` / `PUT` / `DELETE` endpoints for items, allergens, and meat types
-* An authenticated Admin/Manager area in the frontend for managing a vendor's own data
-* A "clean start" flow, letting a new vendor populate their own data from the UI instead of editing seed files
-* Category management from the UI — categories are currently defined via `core/config.py` (key + translation), with no way to create/rename them from the app yet
-* Support for **"may contain traces of"** allergens
+* Letting the admin change their own password from the admin area (currently only set once, via `.env`)
+* CSV export of items, alongside the existing PDF export
+* Vendor logo upload
+* Pagination on the admin items table (currently loads up to 500 at once)
 * PostgreSQL as a documented, tested alternative to SQLite for hosted deployments
+* Docker and CI (automated test runs on push)
 
 ---
 
@@ -379,17 +418,11 @@ items = {
 
 When present, the application will automatically load this data instead of the sample data. If the file is not found, the system safely falls back to the sample dataset.
 
-This approach allows:
-
-* Running the project out-of-the-box
-* Keeping real business data private
-* Avoiding configuration or environment variables for simple setups
-
 **Note:** `src/product_management/seed/items.py` is listed in `.gitignore` to keep real business data out of version control.
 
 ### Using real meat type data (optional)
 
-If **meat tracking** is enabled (see **Feature Flags** above), you can similarly provide real per-item meat data via a file excluded from version control.
+If **meat tracking** is enabled (see **Settings** above), you can similarly provide real per-item meat data via a file excluded from version control.
 
 Create a file at:
 
@@ -408,26 +441,9 @@ item_meat = {
 
 If this file isn't present, the application falls back to a small internal sample dataset. `src/product_management/seed/item_meat.py` is also listed in `.gitignore`.
 
-### Using real category assignments (optional)
+### Categories
 
-You can similarly provide real per-item category assignments via a file excluded from version control.
-
-Create a file at:
-
-```
-src/product_management/seed/item_categories.py
-```
-
-Define a variable called `item_categories` with the same structure as the sample data, using category **keys** (not display text — see **Feature Flags** for how keys map to translated labels):
-
-```python
-item_categories = {
-    "Example item": "snacks",
-    "Another item": "bakery",
-}
-```
-
-If this file isn't present, the application falls back to a small internal sample dataset. `src/product_management/seed/item_categories.py` is also listed in `.gitignore`.
+Unlike items and meat assignments, categories are managed through the **admin area** (`/admin/categories`) rather than a seed file, since they're a proper database table that both an admin and the seeded sample items reference by key.
 
 ---
 

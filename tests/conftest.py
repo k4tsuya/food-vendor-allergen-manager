@@ -8,7 +8,7 @@ from src.product_management.core.security import hash_password
 from src.product_management.models import Base
 from main import app
 from src.product_management.core.database import get_db
-
+from src.product_management.core.security import limiter
 
 @pytest.fixture
 def db_session():
@@ -48,3 +48,8 @@ def auth_headers(client, db_session):
     )
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+@pytest.fixture(autouse=True)
+def reset_rate_limiter():
+    limiter.reset()
+    yield
