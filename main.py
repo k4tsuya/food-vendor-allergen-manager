@@ -5,24 +5,24 @@ from fastapi import FastAPI
 from src.product_management.routers import items, allergens, health, config, meat_types, auth
 from src.product_management.seed.insert_data import load_allergens, load_meat_types, load_items, load_admin, load_categories
 from src.product_management.core.database import SessionLocal, engine
-from src.product_management.core.config import ENABLE_MEAT_TRACKING
 from src.product_management.models import Base
 from src.product_management.routers import items, allergens, health, config, meat_types, auth, categories
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-
+from src.product_management.queries import get_settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
 
     with SessionLocal() as db:
+        settings = get_settings(db)
         load_allergens(db)
-        if ENABLE_MEAT_TRACKING:
+        load_categories(db)
+        if settings.meat_tracking_enabled:
             load_meat_types(db)
         load_items(db)
-        load_admin(db)
-        load_categories(db)
+
     yield
 
 

@@ -1,18 +1,28 @@
-"""Route exposing app-wide configuration to the frontend."""
+"""Routes for app-wide settings."""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
-from src.product_management.core.config import ITEM_LABEL, ENABLE_MEAT_TRACKING
-from src.product_management.schemas import ConfigResponse
+from src.product_management.core.database import get_db
+from src.product_management.core.security import get_current_admin
+from src.product_management.models import Admin
+from src.product_management.schemas import SettingsResponse, SettingsUpdate
+from src.product_management.queries import get_settings, update_settings
 
 router = APIRouter()
 
 
-@router.get("/config", response_model=ConfigResponse)
-def get_config():
-    """Return frontend-relevant configuration values."""
-    return ConfigResponse(
-        item_label_en=ITEM_LABEL["en"],
-        item_label_nl=ITEM_LABEL["nl"],
-        meat_tracking_enabled=ENABLE_MEAT_TRACKING,
-    )
+@router.get("/config", response_model=SettingsResponse)
+def get_config(db: Session = Depends(get_db)):
+    """Return current app settings. Public — the frontend needs this without logging in."""
+    return get_settings(db)
+
+
+@router.put("/config", response_model=SettingsResponse)
+def update_config(
+    data: SettingsUpdate,
+    current_admin: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Update app settings. Requires authentication."""
+    return update_settings(db, data)

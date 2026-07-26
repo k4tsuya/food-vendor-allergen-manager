@@ -88,3 +88,11 @@ class Category(Base):
     code: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     description_en: Mapped[str] = mapped_column(String(200), nullable=False)
     description_nl: Mapped[str] = mapped_column(String(200), nullable=False)
+
+class AppSettings(Base):
+    __tablename__ = "app_settings"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    item_label_en: Mapped[str] = mapped_column(String(100), nullable=False)
+    item_label_nl: Mapped[str] = mapped_column(String(100), nullable=False)
+    meat_tracking_enabled: Mapped[bool] = mapped_column(nullable=False)

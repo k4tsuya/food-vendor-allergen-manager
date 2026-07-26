@@ -2,13 +2,12 @@
 
 import os
 from sqlalchemy.orm import Session
-from src.product_management.core.config import ENABLE_MEAT_TRACKING
 from src.product_management.models import Allergen, MeatType, Item, Category
 from src.product_management.seed.allergens import ALLERGENS
 from src.product_management.seed.meat_types import MEAT_TYPES
 from src.product_management.models import Admin
 from src.product_management.core.security import hash_password
-
+from src.product_management.queries import get_settings
 
 SAMPLE_ITEMS = {
     "Frikandel": ["gluten", "soy", "mustard"],
@@ -77,6 +76,8 @@ def load_meat_types(db: Session) -> None:
 def load_items(db: Session) -> None:
     """Insert items into the db with the corresponding allergens."""
 
+    settings = get_settings(db)
+
     data_source: dict = SAMPLE_ITEMS
     meat_data_source: dict = SAMPLE_ITEM_MEAT_TYPES
     category_data_source: dict = SAMPLE_ITEM_CATEGORIES
@@ -87,7 +88,7 @@ def load_items(db: Session) -> None:
     }
 
     meat_types_by_code = {}
-    if ENABLE_MEAT_TRACKING:
+    if settings.meat_tracking_enabled:
         meat_types_by_code = {
             meat_type.code: meat_type
             for meat_type in db.query(MeatType).all()
@@ -105,12 +106,6 @@ def load_items(db: Session) -> None:
     except ImportError:
         pass
 
-    try:
-        from src.product_management.seed.item_categories import item_categories
-        category_data_source = item_categories
-    except ImportError:
-        pass
-
     for name, allergen_codes in data_source.items():
         if db.query(Item).filter_by(name=name).first():
             continue
@@ -120,7 +115,7 @@ def load_items(db: Session) -> None:
         for code in allergen_codes:
             item.allergens.append(allergens_by_code[code])
 
-        if ENABLE_MEAT_TRACKING:
+        if settings.meat_tracking_enabled:
             meat_codes = meat_data_source.get(name, [])
             for code in meat_codes:
                 item.meat_types.append(meat_types_by_code[code])

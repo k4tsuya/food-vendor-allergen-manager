@@ -3,12 +3,6 @@
 from pydantic import BaseModel, ConfigDict
 
 
-class ConfigResponse(BaseModel):
-    item_label_en: str
-    item_label_nl: str
-    meat_tracking_enabled: bool
-
-
 class AllergenResponse(BaseModel):
     id: int
     code: str
@@ -107,3 +101,17 @@ class CategoryCreate(BaseModel):
 class CategoryUpdate(BaseModel):
     description_en: str
     description_nl: str
+    
+
+class SettingsResponse(BaseModel):
+    item_label_en: str
+    item_label_nl: str
+    meat_tracking_enabled: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SettingsUpdate(BaseModel):
+    item_label_en: str
+    item_label_nl: str
+    meat_tracking_enabled: bool

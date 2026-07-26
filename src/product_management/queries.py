@@ -1,6 +1,6 @@
 """Queries for the item management app."""
 from src.product_management.schemas import ItemAllergenView, ItemCreate, ItemUpdate
-from src.product_management.models import Item, Allergen, MeatType, Category
+from src.product_management.models import Item, Allergen, MeatType, Category, AppSettings
 from sqlalchemy.orm import Session
 
 
@@ -275,3 +275,28 @@ def delete_category(db: Session, category_id: int) -> bool:
     db.delete(category)
     db.commit()
     return True
+
+def get_settings(db: Session) -> AppSettings:
+    """Return the app's settings row, creating a default one if missing."""
+    settings = db.query(AppSettings).first()
+    if settings is None:
+        settings = AppSettings(
+            item_label_en="Item",
+            item_label_nl="Item",
+            meat_tracking_enabled=False,
+        )
+        db.add(settings)
+        db.commit()
+        db.refresh(settings)
+    return settings
+
+
+def update_settings(db: Session, data: "SettingsUpdate") -> AppSettings:
+    """Update the app's settings row."""
+    settings = get_settings(db)
+    settings.item_label_en = data.item_label_en
+    settings.item_label_nl = data.item_label_nl
+    settings.meat_tracking_enabled = data.meat_tracking_enabled
+    db.commit()
+    db.refresh(settings)
+    return settings
