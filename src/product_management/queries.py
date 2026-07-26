@@ -135,3 +135,94 @@ def delete_item(db: Session, item_id: int) -> bool:
     db.delete(item)
     db.commit()
     return True
+
+
+
+def get_allergen(db: Session, allergen_id: int) -> Allergen | None:
+    """Query a single allergen by id."""
+    return db.query(Allergen).filter_by(id=allergen_id).first()
+
+
+def create_allergen(db: Session, data: "AllergenCreate") -> Allergen | None:
+    """Insert a new allergen. Returns None if the code already exists."""
+    if db.query(Allergen).filter_by(code=data.code).first():
+        return None
+
+    allergen = Allergen(
+        code=data.code,
+        description_en=data.description_en,
+        description_nl=data.description_nl,
+    )
+    db.add(allergen)
+    db.commit()
+    db.refresh(allergen)
+    return allergen
+
+
+def update_allergen(db: Session, allergen_id: int, data: "AllergenUpdate") -> Allergen | None:
+    """Update an existing allergen's descriptions."""
+    allergen = get_allergen(db, allergen_id)
+    if allergen is None:
+        return None
+
+    allergen.description_en = data.description_en
+    allergen.description_nl = data.description_nl
+    db.commit()
+    db.refresh(allergen)
+    return allergen
+
+
+def delete_allergen(db: Session, allergen_id: int) -> bool:
+    """Delete an allergen by id. Returns True if deleted, False if not found."""
+    allergen = get_allergen(db, allergen_id)
+    if allergen is None:
+        return False
+
+    db.delete(allergen)
+    db.commit()
+    return True
+
+
+def get_meat_type(db: Session, meat_type_id: int) -> MeatType | None:
+    """Query a single meat type by id."""
+    return db.query(MeatType).filter_by(id=meat_type_id).first()
+
+
+def create_meat_type(db: Session, data: "MeatTypeCreate") -> MeatType | None:
+    """Insert a new meat type. Returns None if the code already exists."""
+    if db.query(MeatType).filter_by(code=data.code).first():
+        return None
+
+    meat_type = MeatType(
+        code=data.code,
+        description_en=data.description_en,
+        description_nl=data.description_nl,
+    )
+    db.add(meat_type)
+    db.commit()
+    db.refresh(meat_type)
+    return meat_type
+
+
+def update_meat_type(db: Session, meat_type_id: int, data: "MeatTypeUpdate") -> MeatType | None:
+    """Update an existing meat type's descriptions."""
+    meat_type = get_meat_type(db, meat_type_id)
+    if meat_type is None:
+        return None
+
+    meat_type.description_en = data.description_en
+    meat_type.description_nl = data.description_nl
+    db.commit()
+    db.refresh(meat_type)
+    return meat_type
+
+
+def delete_meat_type(db: Session, meat_type_id: int) -> bool:
+    """Delete a meat type by id. Returns True if deleted, False if not found."""
+    meat_type = get_meat_type(db, meat_type_id)
+    if meat_type is None:
+        return False
+
+    db.delete(meat_type)
+    db.commit()
+    return True

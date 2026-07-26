@@ -68,3 +68,24 @@ class ItemUpdate(BaseModel):
 class ItemWriteResponse(BaseModel):
     item: ItemResponse
     warnings: list[str] = []
+    
+class AllergenCreate(BaseModel):
+    code: str
+    description_en: str
+    description_nl: str
+
+
+class AllergenUpdate(BaseModel):
+    description_en: str
+    description_nl: str
+
+
+class MeatTypeCreate(BaseModel):
+    code: str
+    description_en: str
+    description_nl: str
+
+
+class MeatTypeUpdate(BaseModel):
+    description_en: str
+    description_nl: str
