@@ -1,12 +1,22 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../localization.jsx';
 
 function Navbar() {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage } = useLanguage();
+  const [brand, setBrand] = useState('');
+
+  useEffect(() => {
+    fetch('http://localhost:8000/config')
+      .then((res) => res.json())
+      .then((data) => {
+        setBrand(language === 'nl' ? data.navbar_brand_nl : data.navbar_brand_en);
+      });
+  }, [language]);
 
   return (
     <nav className="navbar">
-      <Link to="/" className="navbar-brand">{t.brand}</Link>
+      <Link to="/" className="navbar-brand">{brand}</Link>
       <div className="navbar-links">
         
         <a  href={`http://localhost:8000/items/pdf?language=${language}`}

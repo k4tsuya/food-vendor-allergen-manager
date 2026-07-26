@@ -17,6 +17,7 @@ import AdminMeatTypesPage from './pages/AdminMeatTypesPage';
 import RequireAuth from './components/RequireAuth';
 import AdminItemsPage from './pages/AdminItemsPage';
 import AdminCategoriesPage from './pages/AdminCategoriesPage';
+import AdminSettingsPage from './pages/AdminSettingsPage';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path="allergens" element={<AdminAllergensPage />} />
           <Route path="meat-types" element={<AdminMeatTypesPage />} />
           <Route path="categories" element={<AdminCategoriesPage />} />
+          <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
       </Routes>
 

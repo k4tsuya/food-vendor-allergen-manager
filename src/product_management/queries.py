@@ -281,9 +281,11 @@ def get_settings(db: Session) -> AppSettings:
     settings = db.query(AppSettings).first()
     if settings is None:
         settings = AppSettings(
-            item_label_en="Item",
-            item_label_nl="Item",
             meat_tracking_enabled=False,
+            company_name="Your Company Name",
+            navbar_brand_en="Allergen Check",
+            navbar_brand_nl="Allergenen Check",
+            default_language="nl",
         )
         db.add(settings)
         db.commit()
@@ -294,9 +296,11 @@ def get_settings(db: Session) -> AppSettings:
 def update_settings(db: Session, data: "SettingsUpdate") -> AppSettings:
     """Update the app's settings row."""
     settings = get_settings(db)
-    settings.item_label_en = data.item_label_en
-    settings.item_label_nl = data.item_label_nl
     settings.meat_tracking_enabled = data.meat_tracking_enabled
+    settings.company_name = data.company_name
+    settings.navbar_brand_en = data.navbar_brand_en
+    settings.navbar_brand_nl = data.navbar_brand_nl
+    settings.default_language = data.default_language
     db.commit()
     db.refresh(settings)
     return settings

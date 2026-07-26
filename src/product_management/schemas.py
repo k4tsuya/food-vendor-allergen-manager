@@ -1,6 +1,7 @@
 """Module containing schemas for the item management app."""
 
 from pydantic import BaseModel, ConfigDict
+from typing import Literal
 
 
 class AllergenResponse(BaseModel):
@@ -104,14 +105,28 @@ class CategoryUpdate(BaseModel):
     
 
 class SettingsResponse(BaseModel):
-    item_label_en: str
-    item_label_nl: str
     meat_tracking_enabled: bool
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class SettingsUpdate(BaseModel):
-    item_label_en: str
-    item_label_nl: str
     meat_tracking_enabled: bool
+
+
+class SettingsResponse(BaseModel):
+    meat_tracking_enabled: bool
+    company_name: str
+    navbar_brand_en: str
+    navbar_brand_nl: str
+    default_language: Literal["nl", "en"]
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SettingsUpdate(BaseModel):
+    meat_tracking_enabled: bool
+    company_name: str
+    navbar_brand_en: str
+    navbar_brand_nl: str
+    default_language: Literal["nl", "en"]

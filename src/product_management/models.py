@@ -93,6 +93,8 @@ class AppSettings(Base):
     __tablename__ = "app_settings"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    item_label_en: Mapped[str] = mapped_column(String(100), nullable=False)
-    item_label_nl: Mapped[str] = mapped_column(String(100), nullable=False)
     meat_tracking_enabled: Mapped[bool] = mapped_column(nullable=False)
+    company_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    navbar_brand_en: Mapped[str] = mapped_column(String(100), nullable=False)
+    navbar_brand_nl: Mapped[str] = mapped_column(String(100), nullable=False)
+    default_language: Mapped[str] = mapped_column(String(2), nullable=False)

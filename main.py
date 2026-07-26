@@ -22,6 +22,7 @@ async def lifespan(app: FastAPI):
         if settings.meat_tracking_enabled:
             load_meat_types(db)
         load_items(db)
+        load_admin(db)
 
     yield
 
@@ -32,7 +33,7 @@ app.mount("/static", StaticFiles(directory="src/product_management/static"), nam
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173", "*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )

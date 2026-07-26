@@ -8,7 +8,6 @@ function AllergensPage() {
   const [meatTypes, setMeatTypes] = useState([]);
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
-  const [itemLabel, setItemLabel] = useState('Item');
   const [meatTrackingEnabled, setMeatTrackingEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -26,7 +25,6 @@ function AllergensPage() {
       fetch('http://localhost:8000/categories').then(res => res.json()),
     ]).then(([allergensData, configData, meatTypesData, categoriesData]) => {
       setAllergens(allergensData);
-      setItemLabel(language === 'nl' ? configData.item_label_nl : configData.item_label_en);
       setMeatTrackingEnabled(configData.meat_tracking_enabled);
       setMeatTypes(configData.meat_tracking_enabled ? meatTypesData : []);
       setCategories(categoriesData);
