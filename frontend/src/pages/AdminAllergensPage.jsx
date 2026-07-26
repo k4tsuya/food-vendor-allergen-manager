@@ -1,4 +1,4 @@
-import CodeLabelAdmin from '../components/CodeLabelAdmin';
+import CodeLabelAdmin from './CodeLabelAdmin';
 
 function AdminAllergensPage() {
   return <CodeLabelAdmin title="Allergens" singularLabel="allergen" apiPath="/allergens" />;

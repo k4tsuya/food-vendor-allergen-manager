@@ -7,7 +7,6 @@ function AllergensPage() {
   const [allergens, setAllergens] = useState([]);
   const [meatTypes, setMeatTypes] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [categoryLabels, setCategoryLabels] = useState({});
   const [items, setItems] = useState([]);
   const [itemLabel, setItemLabel] = useState('Item');
   const [meatTrackingEnabled, setMeatTrackingEnabled] = useState(false);
@@ -31,7 +30,6 @@ function AllergensPage() {
       setMeatTrackingEnabled(configData.meat_tracking_enabled);
       setMeatTypes(configData.meat_tracking_enabled ? meatTypesData : []);
       setCategories(categoriesData);
-      setCategoryLabels(configData.category_labels);
     });
   }, [language]);
 
@@ -43,7 +41,7 @@ function AllergensPage() {
     if (search) params.set('search', search);
     excludedAllergens.forEach((code) => params.append('exclude_allergens', code));
     selectedMeatTypes.forEach((code) => params.append('meat_types', code));
-    selectedCategories.forEach((cat) => params.append('categories', cat));
+    selectedCategories.forEach((code) => params.append('categories', code));
 
     fetch(`http://localhost:8000/items?${params.toString()}`)
       .then(res => res.json())
@@ -65,9 +63,9 @@ function AllergensPage() {
     );
   };
 
-  const toggleCategory = (category) => {
+  const toggleCategory = (code) => {
     setSelectedCategories((prev) =>
-      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
     );
   };
 
@@ -75,7 +73,9 @@ function AllergensPage() {
 
   const getCategoryLabel = (key) => {
     if (!key) return uncategorizedLabel;
-    return categoryLabels[key]?.[language] || key;
+    const category = categories.find((c) => c.code === key);
+    if (!category) return key;
+    return language === 'nl' ? category.description_nl : category.description_en;
   };
 
   let lastCategory = null;
@@ -93,7 +93,6 @@ function AllergensPage() {
         selectedMeatTypes={selectedMeatTypes}
         onToggleMeatType={toggleMeatType}
         categories={categories}
-        categoryLabels={categoryLabels}
         selectedCategories={selectedCategories}
         onToggleCategory={toggleCategory}
         language={language}

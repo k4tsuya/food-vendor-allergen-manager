@@ -80,3 +80,11 @@ class Admin(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    
+class Category(Base):
+    __tablename__ = "categories"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    description_en: Mapped[str] = mapped_column(String(200), nullable=False)
+    description_nl: Mapped[str] = mapped_column(String(200), nullable=False)

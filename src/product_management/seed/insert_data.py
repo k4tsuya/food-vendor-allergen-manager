@@ -1,11 +1,13 @@
 """Module for inserting data into the database."""
 
+import os
 from sqlalchemy.orm import Session
-
 from src.product_management.core.config import ENABLE_MEAT_TRACKING
-from src.product_management.models import Allergen, MeatType, Item
+from src.product_management.models import Allergen, MeatType, Item, Category
 from src.product_management.seed.allergens import ALLERGENS
 from src.product_management.seed.meat_types import MEAT_TYPES
+from src.product_management.models import Admin
+from src.product_management.core.security import hash_password
 
 
 SAMPLE_ITEMS = {
@@ -27,6 +29,11 @@ SAMPLE_ITEM_CATEGORIES = {
     "Kroket": "Snacks",
     "Bread": "Bakery",
     "Fishstick": "Snacks",
+}
+
+SAMPLE_CATEGORIES = {
+    "snacks": {"en": "Snacks", "nl": "Snacks"},
+    "bakery": {"en": "Bakery", "nl": "Bakkerij"},
 }
 
 def load_allergens(db: Session) -> None:
@@ -122,9 +129,7 @@ def load_items(db: Session) -> None:
 
     db.commit()
     
-import os
-from src.product_management.models import Admin
-from src.product_management.core.security import hash_password
+
 
 
 def load_admin(db: Session) -> None:
@@ -140,4 +145,20 @@ def load_admin(db: Session) -> None:
         return
 
     db.add(Admin(username=username, hashed_password=hash_password(password)))
+    db.commit()
+    
+def load_categories(db: Session) -> None:
+    """Insert categories into the db if they don't exist."""
+    for code, data in SAMPLE_CATEGORIES.items():
+        if db.query(Category).filter_by(code=code).first():
+            continue
+
+        db.add(
+            Category(
+                code=code,
+                description_en=data["en"],
+                description_nl=data["nl"],
+            )
+        )
+
     db.commit()

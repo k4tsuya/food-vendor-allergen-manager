@@ -1,4 +1,4 @@
-import CodeLabelAdmin from '../components/CodeLabelAdmin';
+import CodeLabelAdmin from './CodeLabelAdmin';
 
 function AdminMeatTypesPage() {
   return <CodeLabelAdmin title="Meat Types" singularLabel="meat type" apiPath="/meat-types" />;

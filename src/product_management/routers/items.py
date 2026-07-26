@@ -8,7 +8,6 @@ from typing import Literal
 
 
 from src.product_management.core.database import get_db
-from src.product_management.core.config import CATEGORY_LABELS
 from src.product_management.core.security import get_current_admin
 from src.product_management.models import Admin
 from src.product_management.schemas import ItemResponse, ItemCreate, ItemUpdate, ItemWriteResponse
@@ -72,10 +71,7 @@ def download_items_pdf(language: Literal["en", "nl"] = "nl", db: Session = Depen
         media_type="application/pdf",
         filename="item_allergens.pdf",
     )
-@router.get("/categories")
-def list_all_categories(db: Session = Depends(get_db)):
-    """Return all distinct item categories currently in use."""
-    return list(CATEGORY_LABELS.keys())
+
 
 
 

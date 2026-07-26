@@ -16,7 +16,7 @@ import AdminAllergensPage from './pages/AdminAllergensPage';
 import AdminMeatTypesPage from './pages/AdminMeatTypesPage';
 import RequireAuth from './components/RequireAuth';
 import AdminItemsPage from './pages/AdminItemsPage';
-
+import AdminCategoriesPage from './pages/AdminCategoriesPage';
 
 function App() {
   return (
@@ -38,6 +38,7 @@ function App() {
           <Route path="items" element={<AdminItemsPage />} />
           <Route path="allergens" element={<AdminAllergensPage />} />
           <Route path="meat-types" element={<AdminMeatTypesPage />} />
+          <Route path="categories" element={<AdminCategoriesPage />} />
         </Route>
       </Routes>
 

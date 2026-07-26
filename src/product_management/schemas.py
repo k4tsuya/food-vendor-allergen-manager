@@ -7,7 +7,6 @@ class ConfigResponse(BaseModel):
     item_label_en: str
     item_label_nl: str
     meat_tracking_enabled: bool
-    category_labels: dict[str, dict[str, str]]
 
 
 class AllergenResponse(BaseModel):
@@ -87,5 +86,24 @@ class MeatTypeCreate(BaseModel):
 
 
 class MeatTypeUpdate(BaseModel):
+    description_en: str
+    description_nl: str
+    
+class CategoryResponse(BaseModel):
+    id: int
+    code: str
+    description_en: str
+    description_nl: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CategoryCreate(BaseModel):
+    code: str
+    description_en: str
+    description_nl: str
+
+
+class CategoryUpdate(BaseModel):
     description_en: str
     description_nl: str

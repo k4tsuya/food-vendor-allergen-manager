@@ -31,16 +31,16 @@ function FilterBar({
             {language === 'nl' ? 'Categorie' : 'Category'}
           </span>
           <div className="filter-chips">
-            {categories.map((category) => (
-              <label key={category} className="filter-chip">
-                <input
-                  type="checkbox"
-                  checked={selectedCategories.includes(category)}
-                  onChange={() => onToggleCategory(category)}
-                />
-                {categoryLabels[category]?.[language] || category}
-              </label>
-            ))}
+          {categories.map((category) => (
+            <label key={category.code} className="filter-chip">
+              <input
+                type="checkbox"
+                checked={selectedCategories.includes(category.code)}
+                onChange={() => onToggleCategory(category.code)}
+              />
+              {language === 'nl' ? category.description_nl : category.description_en}
+            </label>
+          ))}
           </div>
         </div>
       )}

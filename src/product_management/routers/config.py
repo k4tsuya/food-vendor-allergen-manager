@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from src.product_management.core.config import ITEM_LABEL, ENABLE_MEAT_TRACKING, CATEGORY_LABELS
+from src.product_management.core.config import ITEM_LABEL, ENABLE_MEAT_TRACKING
 from src.product_management.schemas import ConfigResponse
 
 router = APIRouter()
@@ -15,5 +15,4 @@ def get_config():
         item_label_en=ITEM_LABEL["en"],
         item_label_nl=ITEM_LABEL["nl"],
         meat_tracking_enabled=ENABLE_MEAT_TRACKING,
-        category_labels=CATEGORY_LABELS
     )

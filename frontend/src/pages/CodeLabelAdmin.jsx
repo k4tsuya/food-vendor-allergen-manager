@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../authContext.jsx';
 import { apiFetch } from '../api.js';
-import Modal from './Modal';
+import Modal from '../components/Modal.jsx';
+
 
 function CodeLabelAdmin({ title, singularLabel, apiPath }) {
   const { token } = useAuth();

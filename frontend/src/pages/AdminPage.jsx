@@ -1,5 +1,5 @@
 import { useAuth } from '../authContext.jsx';
-import CodeLabelAdmin from '../components/CodeLabelAdmin';
+import CodeLabelAdmin from './CodeLabelAdmin.jsx';
 
 function AdminPage() {
   const { token, logout } = useAuth();

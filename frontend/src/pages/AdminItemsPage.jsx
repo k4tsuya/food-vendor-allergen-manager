@@ -10,7 +10,6 @@ function AdminItemsPage() {
   const [meatTypes, setMeatTypes] = useState([]);
   const [meatTrackingEnabled, setMeatTrackingEnabled] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [categoryLabels, setCategoryLabels] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -22,24 +21,23 @@ function AdminItemsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [warnings, setWarnings] = useState([]);
 
-  const loadAll = () => {
-    setIsLoading(true);
-    Promise.all([
-      apiFetch('/items?limit=500', token),
-      apiFetch('/allergens', token),
-      apiFetch('/config', token),
-      apiFetch('/meat-types', token),
-      apiFetch('/categories', token),
-    ]).then(([itemsData, allergensData, configData, meatTypesData, categoriesData]) => {
-      setItems(itemsData);
-      setAllergens(allergensData);
-      setMeatTrackingEnabled(configData.meat_tracking_enabled);
-      setMeatTypes(configData.meat_tracking_enabled ? meatTypesData : []);
-      setCategories(categoriesData);
-      setCategoryLabels(configData.category_labels);
-      setIsLoading(false);
-    });
-  };
+const loadAll = () => {
+  setIsLoading(true);
+  Promise.all([
+    apiFetch('/items?limit=500', token),
+    apiFetch('/allergens', token),
+    apiFetch('/config', token),
+    apiFetch('/meat-types', token),
+    apiFetch('/categories', token),
+  ]).then(([itemsData, allergensData, configData, meatTypesData, categoriesData]) => {
+    setItems(itemsData);
+    setAllergens(allergensData);
+    setMeatTrackingEnabled(configData.meat_tracking_enabled);
+    setMeatTypes(configData.meat_tracking_enabled ? meatTypesData : []);
+    setCategories(categoriesData);
+    setIsLoading(false);
+  });
+};
 
   useEffect(() => {
     loadAll();
@@ -159,12 +157,12 @@ function AdminItemsPage() {
           <label className="login-field">
             Category
             <select value={categoryKey} onChange={(e) => setCategoryKey(e.target.value)}>
-              <option value="">No category</option>
-              {categories.map((key) => (
-                <option key={key} value={key}>
-                  {categoryLabels[key]?.en || key}
+            <option value="">No category</option>
+            {categories.map((category) => (
+                <option key={category.code} value={category.code}>
+                {category.description_en}
                 </option>
-              ))}
+            ))}
             </select>
           </label>
 
@@ -236,7 +234,7 @@ function AdminItemsPage() {
           {items.map((item) => (
             <tr key={item.id}>
               <td>{item.name}</td>
-              <td>{item.category_key ? (categoryLabels[item.category_key]?.en || item.category_key) : '—'}</td>
+              <td>{item.category_key ? (categories.find((c) => c.code === item.category_key)?.description_en || item.category_key) : '—'}</td>
               <td>{item.allergens.map((a) => a.description_en).join(', ') || '—'}</td>
               <td className="admin-row-actions">
                 <button onClick={() => handleEdit(item)} className="admin-link-button">
