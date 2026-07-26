@@ -174,3 +174,151 @@ def test_delete_item_requires_auth(client):
     response = client.delete("/items/1")
 
     assert response.status_code == 401
+    
+
+def test_create_allergen_requires_auth(client):
+    response = client.post(
+        "/allergens",
+        json={"code": "test", "description_en": "Test", "description_nl": "Test"},
+    )
+
+    assert response.status_code == 401
+
+
+def test_create_allergen_succeeds_with_auth(client, db_session):
+    headers = get_auth_headers(client, db_session)
+
+    response = client.post(
+        "/allergens",
+        json={"code": "test-allergen", "description_en": "Test", "description_nl": "Test"},
+        headers=headers,
+    )
+
+    assert response.status_code == 201
+    assert response.json()["code"] == "test-allergen"
+
+
+def test_create_allergen_rejects_duplicate_code(client, db_session):
+    headers = get_auth_headers(client, db_session)
+
+    client.post(
+        "/allergens",
+        json={"code": "dupe", "description_en": "Test", "description_nl": "Test"},
+        headers=headers,
+    )
+    response = client.post(
+        "/allergens",
+        json={"code": "dupe", "description_en": "Test again", "description_nl": "Test again"},
+        headers=headers,
+    )
+
+    assert response.status_code == 400
+
+
+def test_update_allergen_changes_descriptions(client, db_session):
+    headers = get_auth_headers(client, db_session)
+
+    create_response = client.post(
+        "/allergens",
+        json={"code": "update-me", "description_en": "Original", "description_nl": "Origineel"},
+        headers=headers,
+    )
+    allergen_id = create_response.json()["id"]
+
+    update_response = client.put(
+        f"/allergens/{allergen_id}",
+        json={"description_en": "Updated", "description_nl": "Bijgewerkt"},
+        headers=headers,
+    )
+
+    assert update_response.status_code == 200
+    assert update_response.json()["description_en"] == "Updated"
+
+
+def test_delete_allergen_succeeds(client, db_session):
+    headers = get_auth_headers(client, db_session)
+
+    create_response = client.post(
+        "/allergens",
+        json={"code": "delete-me", "description_en": "Test", "description_nl": "Test"},
+        headers=headers,
+    )
+    allergen_id = create_response.json()["id"]
+
+    delete_response = client.delete(f"/allergens/{allergen_id}", headers=headers)
+
+    assert delete_response.status_code == 204
+
+
+def test_create_meat_type_requires_auth(client):
+    response = client.post(
+        "/meat-types",
+        json={"code": "test", "description_en": "Test", "description_nl": "Test"},
+    )
+
+    assert response.status_code == 401
+
+
+def test_create_meat_type_succeeds_with_auth(client, db_session):
+    headers = get_auth_headers(client, db_session)
+
+    response = client.post(
+        "/meat-types",
+        json={"code": "test-meat", "description_en": "Test", "description_nl": "Test"},
+        headers=headers,
+    )
+
+    assert response.status_code == 201
+    assert response.json()["code"] == "test-meat"
+
+
+def test_create_meat_type_rejects_duplicate_code(client, db_session):
+    headers = get_auth_headers(client, db_session)
+
+    client.post(
+        "/meat-types",
+        json={"code": "dupe-meat", "description_en": "Test", "description_nl": "Test"},
+        headers=headers,
+    )
+    response = client.post(
+        "/meat-types",
+        json={"code": "dupe-meat", "description_en": "Test again", "description_nl": "Test again"},
+        headers=headers,
+    )
+
+    assert response.status_code == 400
+
+
+def test_update_meat_type_changes_descriptions(client, db_session):
+    headers = get_auth_headers(client, db_session)
+
+    create_response = client.post(
+        "/meat-types",
+        json={"code": "update-meat", "description_en": "Original", "description_nl": "Origineel"},
+        headers=headers,
+    )
+    meat_type_id = create_response.json()["id"]
+
+    update_response = client.put(
+        f"/meat-types/{meat_type_id}",
+        json={"description_en": "Updated", "description_nl": "Bijgewerkt"},
+        headers=headers,
+    )
+
+    assert update_response.status_code == 200
+    assert update_response.json()["description_en"] == "Updated"
+
+
+def test_delete_meat_type_succeeds(client, db_session):
+    headers = get_auth_headers(client, db_session)
+
+    create_response = client.post(
+        "/meat-types",
+        json={"code": "delete-meat", "description_en": "Test", "description_nl": "Test"},
+        headers=headers,
+    )
+    meat_type_id = create_response.json()["id"]
+
+    delete_response = client.delete(f"/meat-types/{meat_type_id}", headers=headers)
+
+    assert delete_response.status_code == 204
