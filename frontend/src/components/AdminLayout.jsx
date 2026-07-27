@@ -6,8 +6,7 @@ function AdminLayout() {
 
   return (
     <div className="app">
-      <div className="admin-header">
-        <h1>Admin Area</h1>
+      <div className="admin-persistent-header">
         <button onClick={logout} className="language-switcher">Log out</button>
       </div>
 

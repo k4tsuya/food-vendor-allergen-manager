@@ -100,7 +100,9 @@ Although I have previous experience with **Django + DRF**, this project focuses 
 src/product_management/
 ├── core/
 │   ├── database.py       # DB engine/session setup + get_db dependency, reads DATABASE_URL from .env
-│   └── security.py         # Password hashing, JWT creation/verification, rate limiter, auth dependency
+│   ├── security.py         # Password hashing, JWT creation/verification, rate limiter, auth dependency
+│   ├── logging_config.py     # Global logging setup (format, level)
+│   └── audit.py                # Lightweight audit logging for admin write actions
 ├── routers/
 │   ├── items.py             # /items, /gluten-free, /items/pdf routes (search/filter, CRUD)
 │   ├── allergens.py          # /allergens routes (public read, authenticated write)
@@ -194,6 +196,17 @@ The application automatically seeds:
 ### Admin account
 
 A single admin account is seeded on first startup, from `ADMIN_USERNAME`/`ADMIN_PASSWORD` in `.env`. Its password is stored as a bcrypt hash — the plaintext value from `.env` is never stored anywhere. Re-running the seed does not reset an existing admin's password.
+
+---
+
+## 📝 Logging & Audit Trail
+
+The app uses Python's standard `logging` module, configured once at startup (timestamp, level, and module name on every line) instead of scattered `print()` statements.
+
+* **Security events** — failed and successful login attempts are logged (`WARNING` / `INFO`), including the requester's IP, making it possible to spot repeated failed-login patterns
+* **Audit trail** — every admin create/update/delete action (items, allergens, meat types, categories, settings) is logged under a separate `"audit"` logger, recording who did what to which resource
+* **Unhandled errors** — any exception that isn't explicitly caught is logged with its full traceback server-side, while the client only ever receives a generic `"Internal server error"` message — full details never leak into an API response
+* **Persistence** — logs are written to both the terminal and a rotating file at `logs/app.log` (capped at ~1MB, keeping the last 5 rotated files), so history survives after the terminal closes. The `logs/` folder is gitignored.
 
 ---
 
@@ -349,6 +362,8 @@ Go to `http://localhost:5173/login` and sign in with the `ADMIN_USERNAME`/`ADMIN
 * `/admin/categories`, `/admin/allergens`, `/admin/meat-types` – Each uses the same reusable list/create/edit/delete UI, since all three share the same code + English/Dutch description shape.
 * `/admin/settings` – Update company name, navbar branding, default language, and the meat tracking toggle. Requires confirmation before saving, since these affect the whole site.
 
+Each admin sub-page shows a "← Back" link beside its own title, returning to `/admin`; "Log out" stays persistently visible top-right across every admin page.
+
 ---
 
 ## 📚 What I Learned From This Project
@@ -367,6 +382,7 @@ Go to `http://localhost:5173/login` and sign in with the `ADMIN_USERNAME`/`ADMIN
 * Writing composable SQLAlchemy queries with multiple optional filters applied conditionally
 * Rate limiting a login endpoint against brute-force attacks
 * Testing an authenticated API with pytest fixtures, including handling stateful complications like rate limiter state leaking between tests
+* Structured application logging: consistent formatting, appropriate severity levels, a separate audit-trail logger for admin actions, and logging full tracebacks server-side while returning generic error messages to clients
 
 ---
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../authContext.jsx';
 import { apiFetch } from '../api.js';
 import Modal from '../components/Modal';
+import { Link } from 'react-router-dom';
 
 function AdminItemsPage() {
   const { token } = useAuth();
@@ -21,23 +22,23 @@ function AdminItemsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [warnings, setWarnings] = useState([]);
 
-const loadAll = () => {
-  setIsLoading(true);
-  Promise.all([
-    apiFetch('/items?limit=500', token),
-    apiFetch('/allergens', token),
-    apiFetch('/config', token),
-    apiFetch('/meat-types', token),
-    apiFetch('/categories', token),
-  ]).then(([itemsData, allergensData, configData, meatTypesData, categoriesData]) => {
-    setItems(itemsData);
-    setAllergens(allergensData);
-    setMeatTrackingEnabled(configData.meat_tracking_enabled);
-    setMeatTypes(configData.meat_tracking_enabled ? meatTypesData : []);
-    setCategories(categoriesData);
-    setIsLoading(false);
-  });
-};
+  const loadAll = () => {
+    setIsLoading(true);
+    Promise.all([
+      apiFetch('/items?limit=500', token),
+      apiFetch('/allergens', token),
+      apiFetch('/config', token),
+      apiFetch('/meat-types', token),
+      apiFetch('/categories', token),
+    ]).then(([itemsData, allergensData, configData, meatTypesData, categoriesData]) => {
+      setItems(itemsData);
+      setAllergens(allergensData);
+      setMeatTrackingEnabled(configData.meat_tracking_enabled);
+      setMeatTypes(configData.meat_tracking_enabled ? meatTypesData : []);
+      setCategories(categoriesData);
+      setIsLoading(false);
+    });
+  };
 
   useEffect(() => {
     loadAll();
@@ -132,7 +133,10 @@ const loadAll = () => {
   return (
     <div className="admin-resource-section">
       <div className="admin-section-header">
-        <h2 className="admin-section-title">Items</h2>
+        <div className="admin-section-header-left">
+          <Link to="/admin" className="admin-back-link">← Back</Link>
+          <h2 className="admin-section-title">Items</h2>
+        </div>
         <button onClick={handleAddNew} className="login-submit admin-add-button">
           Add item
         </button>
@@ -157,12 +161,12 @@ const loadAll = () => {
           <label className="login-field">
             Category
             <select value={categoryKey} onChange={(e) => setCategoryKey(e.target.value)}>
-            <option value="">No category</option>
-            {categories.map((category) => (
+              <option value="">No category</option>
+              {categories.map((category) => (
                 <option key={category.code} value={category.code}>
-                {category.description_en}
+                  {category.description_en}
                 </option>
-            ))}
+              ))}
             </select>
           </label>
 

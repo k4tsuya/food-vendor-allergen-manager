@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../authContext.jsx';
 import { apiFetch } from '../api.js';
 import Modal from '../components/Modal.jsx';
+import { Link } from 'react-router-dom';
 
 
 function CodeLabelAdmin({ title, singularLabel, apiPath }) {
@@ -87,7 +88,10 @@ function CodeLabelAdmin({ title, singularLabel, apiPath }) {
   return (
     <div className="admin-resource-section">
       <div className="admin-section-header">
-        <h2 className="admin-section-title">{title}</h2>
+        <div className="admin-section-header-left">
+          <Link to="/admin" className="admin-back-link">← Back</Link>
+          <h2 className="admin-section-title">{title}</h2>
+        </div>
         <button onClick={handleAddNew} className="login-submit admin-add-button">
           Add {singularLabel}
         </button>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../authContext.jsx';
 import { apiFetch } from '../api.js';
+import { Link } from 'react-router-dom';
 
 function AdminSettingsPage() {
   const { token } = useAuth();
@@ -24,32 +25,32 @@ function AdminSettingsPage() {
     });
   }, []);
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!window.confirm('Save these settings? This affects the entire site.')) {
-    return;
-  }
+    if (!window.confirm('Save these settings? This affects the entire site.')) {
+      return;
+    }
 
-  setError('');
-  setSaved(false);
+    setError('');
+    setSaved(false);
 
-  try {
-    await apiFetch('/config', token, {
-      method: 'PUT',
-      body: JSON.stringify({
-        meat_tracking_enabled: meatTrackingEnabled,
-        company_name: companyName,
-        navbar_brand_en: navbarBrandEn,
-        navbar_brand_nl: navbarBrandNl,
-        default_language: defaultLanguage,
-      }),
-    });
-    setSaved(true);
-  } catch (err) {
-    setError(err.message);
-  }
-};
+    try {
+      await apiFetch('/config', token, {
+        method: 'PUT',
+        body: JSON.stringify({
+          meat_tracking_enabled: meatTrackingEnabled,
+          company_name: companyName,
+          navbar_brand_en: navbarBrandEn,
+          navbar_brand_nl: navbarBrandNl,
+          default_language: defaultLanguage,
+        }),
+      });
+      setSaved(true);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
   if (isLoading) {
     return <p className="loading-message">Loading...</p>;
@@ -58,7 +59,10 @@ const handleSubmit = async (e) => {
   return (
     <div className="admin-resource-section">
       <div className="admin-section-header">
-        <h2 className="admin-section-title">Settings</h2>
+        <div className="admin-section-header-left">
+          <Link to="/admin" className="admin-back-link">← Back</Link>
+          <h2 className="admin-section-title">Settings</h2>
+        </div>
       </div>
 
       <form className="admin-form" onSubmit={handleSubmit}>

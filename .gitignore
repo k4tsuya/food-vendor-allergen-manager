@@ -215,3 +215,6 @@ src/product_management/seed/item_meat_types.py
 src/product_management/seed/item_categories.py
 generated/
 product_management.db
+logs/
+app.log
+app.log.*

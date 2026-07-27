@@ -163,3 +163,45 @@
   font-size: 0.85rem;
   margin: 0;
 }
+
+.admin-persistent-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.admin-back-link:hover {
+  text-decoration: underline;
+}
+
+.admin-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #E5E3DC;
+}
+
+.admin-section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.admin-back-link {
+  color: #6B6B63;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.admin-back-link:hover {
+  color: #1F6F63;
+  text-decoration: underline;
+}
+
+.admin-section-title {
+  font-size: 1.35rem;
+  margin: 0;
+}

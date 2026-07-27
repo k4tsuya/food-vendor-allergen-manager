@@ -17,7 +17,7 @@ function AdminLandingPage() {
       <div className="admin-landing-grid">
         <Link to="/admin/settings" className="admin-landing-card">
           <span className="admin-landing-card-title">Settings</span>
-          <span className="admin-landing-card-desc">Item label and feature toggles</span>
+          <span className="admin-landing-card-desc">Company name, branding, default language, and feature toggles</span>
         </Link>
       </div>
 
