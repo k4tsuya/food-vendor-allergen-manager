@@ -130,3 +130,8 @@ class SettingsUpdate(BaseModel):
     navbar_brand_en: str
     navbar_brand_nl: str
     default_language: Literal["nl", "en"]
+    
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str

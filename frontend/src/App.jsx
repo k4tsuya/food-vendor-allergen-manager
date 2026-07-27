@@ -18,6 +18,7 @@ import RequireAuth from './components/RequireAuth';
 import AdminItemsPage from './pages/AdminItemsPage';
 import AdminCategoriesPage from './pages/AdminCategoriesPage';
 import AdminSettingsPage from './pages/AdminSettingsPage';
+import AdminAccountPage from './pages/AdminAccountPage';
 
 function App() {
   return (
@@ -34,7 +35,8 @@ function App() {
               <AdminLayout />
             </RequireAuth>
           }
-        >
+        > 
+          <Route path="account" element={<AdminAccountPage />} />
           <Route index element={<AdminLandingPage />} />
           <Route path="items" element={<AdminItemsPage />} />
           <Route path="allergens" element={<AdminAllergensPage />} />

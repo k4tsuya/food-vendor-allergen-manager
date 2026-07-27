@@ -19,8 +19,13 @@ function AdminLandingPage() {
           <span className="admin-landing-card-title">Settings</span>
           <span className="admin-landing-card-desc">Company name, branding, default language, and feature toggles</span>
         </Link>
+          <div className="admin-landing-grid">
+        <Link to="/admin/account" className="admin-landing-card">
+          <span className="admin-landing-card-title">Account</span>
+          <span className="admin-landing-card-desc">Change your password</span>
+        </Link>
       </div>
-
+      </div>
       <div className="admin-landing-divider">
         <span>Reference data</span>
       </div>

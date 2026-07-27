@@ -10,6 +10,12 @@ export async function apiFetch(path, token, options = {}) {
     },
   });
 
+  if (response.status === 401) {
+    localStorage.removeItem('admin_token');
+    window.location.href = '/login';
+    throw new Error('Session expired. Please log in again.');
+  }
+
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
     throw new Error(errorBody.detail || `Request failed with status ${response.status}`);

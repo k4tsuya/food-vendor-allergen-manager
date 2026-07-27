@@ -27,7 +27,7 @@ def test_login_fails_with_wrong_password(client, db_session):
     assert response.status_code == 401
 
 
-def test_login_fails_with_unknown_username(client, db_session):
+def test_login_fails_with_unknown_username(client):
     response = client.post(
         "/auth/login",
         json={"username": "doesnotexist", "password": "whatever"},
@@ -80,3 +80,42 @@ def test_login_rate_limits_after_five_attempts(client, db_session):
         json={"username": "testadmin", "password": "wrong"},
     )
     assert sixth_response.status_code == 429
+    
+def test_change_password_requires_auth(client):
+    response = client.put(
+        "/auth/password",
+        json={"current_password": "whatever", "new_password": "newpass123"},
+    )
+
+    assert response.status_code == 401
+
+
+def test_change_password_fails_with_wrong_current_password(client, auth_headers):
+    response = client.put(
+        "/auth/password",
+        json={"current_password": "wrongpassword", "new_password": "newpass123"},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 401
+
+
+def test_change_password_succeeds_and_old_password_stops_working(client, auth_headers):
+    response = client.put(
+        "/auth/password",
+        json={"current_password": "testpass123", "new_password": "newpass456"},
+        headers=auth_headers,
+    )
+    assert response.status_code == 200
+
+    old_login = client.post(
+        "/auth/login",
+        json={"username": "testadmin", "password": "testpass123"},
+    )
+    assert old_login.status_code == 401
+
+    new_login = client.post(
+        "/auth/login",
+        json={"username": "testadmin", "password": "newpass456"},
+    )
+    assert new_login.status_code == 200

@@ -109,7 +109,7 @@ src/product_management/
 │   ├── meat_types.py          # /meat-types routes (public read, authenticated write)
 │   ├── categories.py           # /categories routes (public read, authenticated write)
 │   ├── config.py                # /config route — app-wide settings (public read, authenticated write)
-│   ├── auth.py                    # /auth/login, /auth/me
+│   ├── auth.py                    # /auth/login, /auth/me, /auth/password
 │   └── health.py                    # /health route
 ├── models.py               # SQLAlchemy models (Item, Allergen, MeatType, Category, Admin, AppSettings)
 ├── schemas.py               # Pydantic schemas
@@ -160,6 +160,7 @@ frontend/src/
 │   ├── AdminAllergensPage.jsx          # "/admin/allergens" — uses CodeLabelAdmin
 │   ├── AdminMeatTypesPage.jsx            # "/admin/meat-types" — uses CodeLabelAdmin
 │   └── AdminSettingsPage.jsx               # "/admin/settings" — app-wide settings form
+│   └── AdminAccountPage.jsx                  # "/admin/account" — change the admin's own password
 ├── styles/                   # CSS split by concern (base, navbar, matrix, filterbar, auth, admin, modal)
 ├── localization.jsx           # React Context: current language, translations, language switcher state
 ├── authContext.jsx              # React Context: JWT token, login/logout, token validation on load
@@ -219,7 +220,8 @@ The project has a single admin account (no multi-user roles) protecting all writ
 * **Public reads** — `GET` endpoints (items, allergens, meat types, categories, config) remain open, since the public matrix page needs them without anyone logging in
 * **Password storage** — hashed with bcrypt via `passlib`, never stored or logged in plaintext
 * **Rate limiting** — `POST /auth/login` is limited to 5 attempts per minute per IP address (via `slowapi`), to make brute-force password guessing impractical
-* **Frontend session** — the JWT is stored in `localStorage` and validated against `GET /auth/me` on page load, so a stale or tampered token doesn't silently grant access to the admin UI
+* **Frontend session** — the JWT is stored in `localStorage` and validated against `GET /auth/me` on page load, so a stale or tampered token doesn't silently grant access to the admin UI. It's also checked on every subsequent request — if any authenticated call returns `401` (e.g. the token expired mid-session), the frontend immediately clears it and redirects to `/login`.
+* **Changing your password** — from `/admin/account`, an admin can change their own password by confirming their current one. This immediately invalidates the current session and requires logging in again with the new password.
 
 ---
 
@@ -346,6 +348,7 @@ Go to `http://localhost:5173/login` and sign in with the `ADMIN_USERNAME`/`ADMIN
 **Authentication**
 * `POST /auth/login` – authenticate, returns a JWT (rate limited: 5/minute per IP)
 * `GET /auth/me` – returns the current admin's identity if the token is valid
+* `PUT /auth/password` – change the current admin's password (requires the current password); invalidates the session, requiring a fresh login
 
 **Admin-only (require a valid Bearer token)**
 * `POST` / `PUT` / `DELETE` on `/items/{id}`, `/allergens/{id}`, `/meat-types/{id}`, `/categories/{id}`
@@ -361,6 +364,7 @@ Go to `http://localhost:5173/login` and sign in with the `ADMIN_USERNAME`/`ADMIN
 * `/admin/items` – Create, edit, and delete items: name, category (dropdown), allergens and meat types (checkboxes). Invalid codes can't be submitted through this UI, but the backend still validates and reports warnings if bypassed via direct API access.
 * `/admin/categories`, `/admin/allergens`, `/admin/meat-types` – Each uses the same reusable list/create/edit/delete UI, since all three share the same code + English/Dutch description shape.
 * `/admin/settings` – Update company name, navbar branding, default language, and the meat tracking toggle. Requires confirmation before saving, since these affect the whole site.
+* `/admin/account` – Change the admin's own password. Requires the current password, and confirming a new password twice client-side before submitting. On success, the session ends immediately and the admin must log in again.
 
 Each admin sub-page shows a "← Back" link beside its own title, returning to `/admin`; "Log out" stays persistently visible top-right across every admin page.
 
@@ -398,7 +402,6 @@ I see this as similar to using a tutorial, documentation, or a mentor: the AI he
 
 Planned extensions include:
 
-* Letting the admin change their own password from the admin area (currently only set once, via `.env`)
 * CSV export of items, alongside the existing PDF export
 * Vendor logo upload
 * Pagination on the admin items table (currently loads up to 500 at once)
