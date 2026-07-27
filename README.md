@@ -358,10 +358,10 @@ Go to `http://localhost:5173/login` and sign in with the `ADMIN_USERNAME`/`ADMIN
 
 ## 🧭 Frontend Pages
 
-* `/` – **Allergen Matrix** page. A filter bar above the content lets someone search by name and filter by allergen (exclude), meat type, and category, refetching live as filters change. On wider screens, a table with items down the left and allergens (with icons) — plus meat type columns when enabled — across a sticky header row, grouped visually by category. On narrower screens, the table becomes a card-per-item layout instead.
+* `/` – **Allergen Matrix** page. A filter bar above the content lets someone search by name and filter by allergen (exclude), meat type, and category, refetching live as filters change. On wider screens, a table with items down the left and allergens (with icons) — plus meat type columns when enabled — across a sticky header row, grouped visually by category. On narrower screens, the table becomes a card-per-item layout instead. Results are paginated (30 per page); changing any filter resets back to page 1.
 * `/login` – Admin login form.
 * `/admin` – Admin landing page, linking to each management section (Items, Settings, and grouped reference data: Categories, Allergens, Meat Types). Protected — redirects to `/login` if not authenticated.
-* `/admin/items` – Create, edit, and delete items: name, category (dropdown), allergens and meat types (checkboxes). Invalid codes can't be submitted through this UI, but the backend still validates and reports warnings if bypassed via direct API access.
+* `/admin/items` – Create, edit, and delete items: name, category (dropdown), allergens and meat types (checkboxes). Invalid codes can't be submitted through this UI, but the backend still validates and reports warnings if bypassed via direct API access. Paginated (25 per page).
 * `/admin/categories`, `/admin/allergens`, `/admin/meat-types` – Each uses the same reusable list/create/edit/delete UI, since all three share the same code + English/Dutch description shape.
 * `/admin/settings` – Update company name, navbar branding, default language, and the meat tracking toggle. Requires confirmation before saving, since these affect the whole site.
 * `/admin/account` – Change the admin's own password. Requires the current password, and confirming a new password twice client-side before submitting. On success, the session ends immediately and the admin must log in again.
@@ -421,7 +421,6 @@ Planned extensions include:
 
 * CSV export of items, alongside the existing PDF export
 * Vendor logo upload
-* Pagination on the admin items table (currently loads up to 500 at once)
 * PostgreSQL as a documented, tested alternative to SQLite for hosted deployments
 * Docker and CI (automated test runs on push)
 

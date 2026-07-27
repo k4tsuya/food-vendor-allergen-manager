@@ -32,3 +32,16 @@ body {
   text-align: center;
   padding: 2rem 0;
 }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1.25rem;
+}
+
+.pagination-info {
+  font-size: 0.85rem;
+  color: #6B6B63;
+}

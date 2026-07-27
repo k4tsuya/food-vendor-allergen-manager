@@ -16,6 +16,11 @@ function AllergensPage() {
   const [selectedMeatTypes, setSelectedMeatTypes] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
 
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(false);
+
+  const PAGE_SIZE = 30;
+
   // Load reference data (allergens, meat types, categories, config) once
   useEffect(() => {
     Promise.all([
@@ -34,37 +39,49 @@ function AllergensPage() {
   // Refetch items whenever a filter changes
   useEffect(() => {
     setIsLoading(true);
-
+  
+    const offset = (page - 1) * PAGE_SIZE;
     const params = new URLSearchParams();
+    params.set('limit', PAGE_SIZE);
+    params.set('offset', offset);
     if (search) params.set('search', search);
     excludedAllergens.forEach((code) => params.append('exclude_allergens', code));
     selectedMeatTypes.forEach((code) => params.append('meat_types', code));
     selectedCategories.forEach((code) => params.append('categories', code));
-
+  
     fetch(`http://localhost:8000/items?${params.toString()}`)
       .then(res => res.json())
       .then(data => {
         setItems(data);
+        setHasNextPage(data.length === PAGE_SIZE);
         setIsLoading(false);
       });
-  }, [search, excludedAllergens, selectedMeatTypes, selectedCategories]);
+  }, [search, excludedAllergens, selectedMeatTypes, selectedCategories, page]);
 
+    const handleSearchChange = (value) => {
+    setSearch(value);
+    setPage(1);
+  };
+  
   const toggleAllergen = (code) => {
     setExcludedAllergens((prev) =>
       prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
     );
+    setPage(1);
   };
-
+  
   const toggleMeatType = (code) => {
     setSelectedMeatTypes((prev) =>
       prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
     );
+    setPage(1);
   };
-
+  
   const toggleCategory = (code) => {
     setSelectedCategories((prev) =>
       prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
     );
+    setPage(1);
   };
 
   const uncategorizedLabel = language === 'nl' ? 'Overig' : 'Uncategorized';
@@ -82,7 +99,7 @@ function AllergensPage() {
     <div className="app">
       <FilterBar
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={handleSearchChange}
         allergens={allergens}
         excludedAllergens={excludedAllergens}
         onToggleAllergen={toggleAllergen}
@@ -220,6 +237,25 @@ function AllergensPage() {
                 </>
               );
             })}
+          </div>
+          <div className="pagination">
+            <button
+              onClick={() => setPage((p) => p - 1)}
+              disabled={page === 1}
+              className="admin-link-button"
+            >
+              {language === 'nl' ? '← Vorige' : '← Previous'}
+            </button>
+            <span className="pagination-info">
+              {language === 'nl' ? `Pagina ${page}` : `Page ${page}`}
+            </span>
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={!hasNextPage}
+              className="admin-link-button"
+            >
+              {language === 'nl' ? 'Volgende →' : 'Next →'}
+            </button>
           </div>
         </>
       )}

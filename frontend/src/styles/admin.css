@@ -205,3 +205,9 @@
   font-size: 1.35rem;
   margin: 0;
 }
+
+.admin-link-button:disabled {
+  color: #C9CFCB;
+  cursor: not-allowed;
+  text-decoration: none;
+}

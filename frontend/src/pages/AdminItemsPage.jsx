@@ -3,6 +3,7 @@ import { useAuth } from '../authContext.jsx';
 import { apiFetch } from '../api.js';
 import Modal from '../components/Modal';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../localization.jsx';
 
 function AdminItemsPage() {
   const { token } = useAuth();
@@ -21,28 +22,37 @@ function AdminItemsPage() {
   const [editingId, setEditingId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [warnings, setWarnings] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(false);
 
-  const loadAll = () => {
-    setIsLoading(true);
-    Promise.all([
-      apiFetch('/items?limit=500', token),
-      apiFetch('/allergens', token),
-      apiFetch('/config', token),
-      apiFetch('/meat-types', token),
-      apiFetch('/categories', token),
-    ]).then(([itemsData, allergensData, configData, meatTypesData, categoriesData]) => {
-      setItems(itemsData);
-      setAllergens(allergensData);
-      setMeatTrackingEnabled(configData.meat_tracking_enabled);
-      setMeatTypes(configData.meat_tracking_enabled ? meatTypesData : []);
-      setCategories(categoriesData);
-      setIsLoading(false);
-    });
-  };
+  const { language } = useLanguage();
+  const PAGE_SIZE = 25;
 
-  useEffect(() => {
-    loadAll();
-  }, []);
+const loadAll = () => {
+  setIsLoading(true);
+  const offset = (page - 1) * PAGE_SIZE;
+
+  Promise.all([
+    apiFetch(`/items?limit=${PAGE_SIZE}&offset=${offset}`, token),
+    apiFetch('/allergens', token),
+    apiFetch('/config', token),
+    apiFetch('/meat-types', token),
+    apiFetch('/categories', token),
+  ]).then(([itemsData, allergensData, configData, meatTypesData, categoriesData]) => {
+    setItems(itemsData);
+    setHasNextPage(itemsData.length === PAGE_SIZE);
+    setAllergens(allergensData);
+    setMeatTrackingEnabled(configData.meat_tracking_enabled);
+    setMeatTypes(configData.meat_tracking_enabled ? meatTypesData : []);
+    setCategories(categoriesData);
+    setIsLoading(false);
+  });
+};
+
+
+useEffect(() => {
+  loadAll();
+}, [page]);
 
   const resetForm = () => {
     setName('');
@@ -251,7 +261,27 @@ function AdminItemsPage() {
             </tr>
           ))}
         </tbody>
+
       </table>
+        <div className="pagination">
+          <button
+            onClick={() => setPage((p) => p - 1)}
+            disabled={page === 1}
+            className="admin-link-button"
+          >
+            ← {language === 'nl' ? 'Vorige' : 'Previous'}
+          </button>
+          <span className="pagination-info">
+            {language === 'nl' ? 'Pagina' : 'Page'} {page}
+          </span>
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            disabled={!hasNextPage}
+            className="admin-link-button"
+          >
+            {language === 'nl' ? 'Volgende' : 'Next'} →
+          </button>
+        </div>
     </div>
   );
 }
