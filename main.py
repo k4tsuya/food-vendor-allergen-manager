@@ -1,7 +1,9 @@
 """Main module for the product management app."""
 
+import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from src.product_management.routers import items, allergens, health, config, meat_types, auth
 from src.product_management.seed.insert_data import load_allergens, load_meat_types, load_items, load_admin, load_categories
 from src.product_management.core.database import SessionLocal, engine
@@ -13,6 +15,11 @@ from src.product_management.queries import get_settings
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from src.product_management.core.security import limiter
+from src.product_management.core.logging_config import configure_logging
+
+configure_logging()
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -31,9 +38,16 @@ async def lifespan(app: FastAPI):
     yield
 
 
+
 app = FastAPI(title="Snack Bar Product API", lifespan=lifespan)
 
+
 app.mount("/static", StaticFiles(directory="src/product_management/static"), name="static")
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 app.add_middleware(
     CORSMiddleware,

@@ -1,5 +1,6 @@
 """Authentication routes."""
 
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -9,9 +10,10 @@ from src.product_management.models import Admin
 from src.product_management.schemas import LoginRequest, TokenResponse
 from fastapi import Request
 
-
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
 
 
 @router.post("/auth/login", response_model=TokenResponse)
@@ -21,11 +23,17 @@ def login(request: Request, credentials: LoginRequest, db: Session = Depends(get
     admin = db.query(Admin).filter_by(username=credentials.username).first()
 
     if not admin or not verify_password(credentials.password, admin.hashed_password):
+        logger.warning(
+            "Failed login attempt for username '%s' from %s",
+            credentials.username,
+            request.client.host,
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
         )
 
+    logger.info("Successful login for '%s' from %s", admin.username, request.client.host)
     token = create_access_token(admin.username)
     return TokenResponse(access_token=token)
 

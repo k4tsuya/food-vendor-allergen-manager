@@ -7,7 +7,7 @@ from src.product_management.models import Admin
 from src.product_management.core.database import get_db
 from src.product_management.schemas import MeatTypeCreate, MeatTypeUpdate, MeatTypeResponse
 from src.product_management.queries import list_meat_types, create_meat_type, update_meat_type, delete_meat_type
-
+from src.product_management.core.audit import log_admin_action
 
 router = APIRouter()
 
@@ -31,6 +31,8 @@ def create_new_meat_type(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"A meat type with code '{data.code}' already exists.",
         )
+        
+    log_admin_action(current_admin, "created", "item", meat_type.id)
     return meat_type
 
 
@@ -45,6 +47,9 @@ def update_existing_meat_type(
     meat_type = update_meat_type(db, meat_type_id, data)
     if meat_type is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Meat type not found")
+    
+    log_admin_action(current_admin, "updated", "item", meat_type.id)
+    
     return meat_type
 
 
@@ -58,3 +63,5 @@ def delete_existing_meat_type(
     deleted = delete_meat_type(db, meat_type_id)
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Meat type not found")
+    
+    log_admin_action(current_admin, "deleted", "item", meat_type_id)

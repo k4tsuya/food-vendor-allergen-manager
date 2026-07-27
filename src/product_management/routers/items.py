@@ -14,6 +14,9 @@ from src.product_management.schemas import ItemResponse, ItemCreate, ItemUpdate,
 from src.product_management.queries import (
     list_items, get_gluten_free_items, pdf_list_items, create_item, update_item, delete_item)
 from src.product_management.pdf_generator import AllergenMatrixPDF
+from src.product_management.core.audit import log_admin_action
+
+
 
 router = APIRouter()
 
@@ -83,6 +86,7 @@ def create_new_item(
 ):
     """Create a new item. Requires authentication."""
     item, warnings = create_item(db, data)
+    log_admin_action(current_admin, "created", "item", item.id)
     return ItemWriteResponse(item=item, warnings=warnings)
 
 
@@ -100,6 +104,7 @@ def update_existing_item(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
 
     item, warnings = result
+    log_admin_action(current_admin, "updated", "item", item.id)
     return ItemWriteResponse(item=item, warnings=warnings)
 
 
@@ -114,3 +119,5 @@ def delete_existing_item(
 
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+    
+    log_admin_action(current_admin, "deleted", "item", item_id)

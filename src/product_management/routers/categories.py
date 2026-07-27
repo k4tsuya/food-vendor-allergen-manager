@@ -8,6 +8,7 @@ from src.product_management.core.security import get_current_admin
 from src.product_management.models import Admin
 from src.product_management.schemas import CategoryResponse, CategoryCreate, CategoryUpdate
 from src.product_management.queries import list_categories, create_category, update_category, delete_category
+from src.product_management.core.audit import log_admin_action
 
 router = APIRouter()
 
@@ -31,6 +32,8 @@ def create_new_category(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"A category with code '{data.code}' already exists.",
         )
+
+    log_admin_action(current_admin, "created", "item", category.id)
     return category
 
 
@@ -45,6 +48,8 @@ def update_existing_category(
     category = update_category(db, category_id, data)
     if category is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
+    
+    log_admin_action(current_admin, "updated", "item", category.id)
     return category
 
 
@@ -58,3 +63,5 @@ def delete_existing_category(
     deleted = delete_category(db, category_id)
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
+    
+    log_admin_action(current_admin, "deleted", "item", category_id)

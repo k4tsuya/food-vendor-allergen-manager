@@ -7,7 +7,7 @@ from src.product_management.models import Admin
 from src.product_management.core.database import get_db
 from src.product_management.schemas import AllergenCreate, AllergenUpdate, AllergenResponse
 from src.product_management.queries import list_allergens, create_allergen, update_allergen, delete_allergen
-
+from src.product_management.core.audit import log_admin_action
 
 router = APIRouter()
 
@@ -31,6 +31,8 @@ def create_new_allergen(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"An allergen with code '{data.code}' already exists.",
         )
+
+    log_admin_action(current_admin, "created", "item", allergen.id)
     return allergen
 
 
@@ -45,6 +47,8 @@ def update_existing_allergen(
     allergen = update_allergen(db, allergen_id, data)
     if allergen is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Allergen not found")
+    
+    log_admin_action(current_admin, "updated", "item", allergen.id)
     return allergen
 
 
@@ -58,3 +62,5 @@ def delete_existing_allergen(
     deleted = delete_allergen(db, allergen_id)
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Allergen not found")
+    
+    log_admin_action(current_admin, "deleted", "item", allergen_id)

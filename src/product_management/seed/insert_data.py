@@ -1,6 +1,7 @@
 """Module for inserting data into the database."""
 
 import os
+import logging
 from sqlalchemy.orm import Session
 from src.product_management.models import Allergen, MeatType, Item, Category
 from src.product_management.seed.allergens import ALLERGENS
@@ -8,6 +9,9 @@ from src.product_management.seed.meat_types import MEAT_TYPES
 from src.product_management.models import Admin
 from src.product_management.core.security import hash_password
 from src.product_management.queries import get_settings
+
+
+logger = logging.getLogger(__name__)
 
 SAMPLE_ITEMS = {
     "Frikandel": ["gluten", "soy", "mustard"],
@@ -98,12 +102,13 @@ def load_items(db: Session) -> None:
         from src.product_management.seed.items import items
         data_source = items
     except ImportError:
-        print("Real data not found. Loading sample data...")
+        logger.info("Real data not found. Loading sample data...")
 
     try:
-        from src.product_management.seed.item_meat import item_meat
+        from src.product_management.seed.item_meat_types import item_meat
         meat_data_source = item_meat
     except ImportError:
+        logger.info("Real data not found. Loading sample data...")
         pass
 
     for name, allergen_codes in data_source.items():
