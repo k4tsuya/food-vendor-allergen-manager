@@ -384,17 +384,34 @@ Each admin sub-page shows a "← Back" link beside its own title, returning to `
 * Managing environment-specific configuration and secrets (`.env`) instead of hardcoding values
 * Building a reusable admin CRUD component shared across multiple resource types, instead of duplicating near-identical forms
 * Writing composable SQLAlchemy queries with multiple optional filters applied conditionally
-* Rate limiting a login endpoint against brute-force attacks
 * Testing an authenticated API with pytest fixtures, including handling stateful complications like rate limiter state leaking between tests
 * Structured application logging: consistent formatting, appropriate severity levels, a separate audit-trail logger for admin actions, and logging full tracebacks server-side while returning generic error messages to clients
 
 ---
 
-## 🤖 Learning React with AI
+## 🤖 Learning React and Backend Security with AI
 
-I'm learning React and practicing JavaScript as part of this project. I've used **Claude** as a learning tool — for help when I got stuck on something specific, and for writing this documentation.
+I'm learning React and practicing JavaScript as part of this project, and more recently used AI to explore backend security concepts (particularly the tradeoffs discussed in **Authentication & Admin Access** and **Backend Security Notes** below). I've used **Claude** as a learning tool — for help when I got stuck on something specific, for exploring security topics I hadn't worked with before, and for writing this documentation.
 
 I see this as similar to using a tutorial, documentation, or a mentor: the AI helps me understand *why* something works the way it does, but the implementation decisions, debugging, and understanding are still mine to build. I'm noting this openly here since transparency about how I learn and build matters to me, especially in a portfolio project.
+
+---
+
+## 🛡️ Backend Security Notes
+
+A few small, deliberate additions, plus known tradeoffs worth documenting honestly rather than leaving unstated:
+
+**Response headers** — every response includes:
+* `X-Content-Type-Options: nosniff` — prevents the browser from guessing a file's type differently than declared
+* `X-Frame-Options: DENY` — prevents the site being loaded inside an `<iframe>` on another page (clickjacking protection)
+* `Referrer-Policy: same-origin` — avoids leaking referrer URLs to external destinations
+
+`Content-Security-Policy` and `Strict-Transport-Security` were deliberately left out for now — CSP needs careful tuning to avoid breaking the app's own scripts/styles, and HSTS only makes sense once this is served over HTTPS rather than local `http://localhost`. Both are worth adding at actual deployment time.
+
+**Known, deliberate tradeoffs:**
+* **JWT stored in `localStorage`, not an httpOnly cookie** — readable by JavaScript, which matters if the app ever had an XSS vulnerability. An httpOnly cookie avoids that specific risk but introduces its own (CSRF), needing separate protection. For a small, single-admin internal tool, `localStorage` is a reasonable choice; it would need revisiting for anything more sensitive or multi-user.
+* **No token revocation** — JWTs are stateless: a token remains valid until it naturally expires (1 hour), even after logging out or changing password on another device. A proper fix (short-lived access tokens + server-side refresh tokens) roughly doubles the complexity of the auth system — reasonable to add later if this ever supports multiple admins, not necessary at the current scale.
+* **No enforced password strength requirement** on `PUT /auth/password` — a known, currently-accepted gap.
 
 ---
 
