@@ -319,11 +319,13 @@ Start the backend:
 uvicorn main:app --reload
 ```
 
-The API is now available at `http://localhost:8000`, with interactive docs at:
+The API is now available at `http://localhost:8000`, with interactive docs (Swagger UI) at:
 
 ```
 http://localhost:8000/docs
 ```
+
+Note this is the **backend** port (`8000`) — the frontend dev server (`5173`, started below) doesn't have this route.
 
 ### 2. Frontend setup
 
