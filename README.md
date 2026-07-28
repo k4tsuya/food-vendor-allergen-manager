@@ -431,6 +431,8 @@ A few small, deliberate additions, plus known tradeoffs worth documenting honest
 * **No token revocation** — JWTs are stateless: a token remains valid until it naturally expires (1 hour), even after logging out or changing password on another device. A proper fix (short-lived access tokens + server-side refresh tokens) roughly doubles the complexity of the auth system — reasonable to add later if this ever supports multiple admins, not necessary at the current scale.
 * **No enforced password strength requirement** on `PUT /auth/password` — a known, currently-accepted gap.
 
+**Logo upload validation** — uploaded files are checked beyond just their extension: PNG/JPEG are verified against their actual binary file signature ("magic bytes"), and SVG files are parsed as XML and rejected if they contain a `<script>` tag. This is a deliberately basic check, not a full SVG sanitizer — a sufficiently motivated attacker could still use other SVG-based vectors (e.g. `onload=` event handler attributes). Since logos are only ever rendered via `<img>` tags (which don't execute embedded scripts) and only a single trusted admin can upload them, this is a proportionate, not exhaustive, defense.
+
 ---
 
 ## 🔮 Future Improvements

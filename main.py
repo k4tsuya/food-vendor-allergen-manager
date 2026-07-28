@@ -39,7 +39,7 @@ async def lifespan(app: FastAPI):
 
 
 
-app = FastAPI(title="Snack Bar Product API", lifespan=lifespan)
+app = FastAPI(title="Item Allergens API", lifespan=lifespan)
 
 
 app.mount("/static", StaticFiles(directory="src/product_management/static"), name="static")

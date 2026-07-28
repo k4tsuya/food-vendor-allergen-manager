@@ -2,6 +2,7 @@
 
 import os
 import shutil
+import xml.etree.ElementTree as ET
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from pathlib import Path
@@ -13,6 +14,13 @@ from src.product_management.schemas import SettingsResponse, SettingsUpdate
 from src.product_management.queries import get_settings, update_settings
 
 router = APIRouter()
+
+
+MAGIC_NUMBERS = {
+    ".png": b"\x89PNG\r\n\x1a\n",
+    ".jpg": b"\xff\xd8\xff",
+    ".jpeg": b"\xff\xd8\xff",
+}
 
 
 @router.get("/config", response_model=SettingsResponse)
@@ -58,7 +66,11 @@ def upload_logo(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Logo file is too large (max 2MB).",
         )
-
+        
+    contents = file.file.read()
+    validate_file_content(extension, contents)
+    file.file.seek(0)
+        
     settings = get_settings(db)
     if settings.logo_path:
         old_file = LOGO_DIR / settings.logo_path
@@ -97,3 +109,35 @@ def delete_logo(
 
     log_admin_action(current_admin, "removed", "logo", "n/a")
     return settings
+
+
+def validate_file_content(extension: str, contents: bytes) -> None:
+    """Verify the file's actual content matches its claimed extension."""
+    if extension in MAGIC_NUMBERS:
+        signature = MAGIC_NUMBERS[extension]
+        if not contents.startswith(signature):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File content does not match a valid image for this extension.",
+            )
+
+    elif extension == ".svg":
+        try:
+            root = ET.fromstring(contents)
+        except ET.ParseError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File is not valid SVG/XML.",
+            )
+
+        if not root.tag.endswith("svg"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File is not a valid SVG (missing <svg> root element).",
+            )
+
+        if b"<script" in contents.lower():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="SVG files containing <script> tags are not allowed.",
+            )
