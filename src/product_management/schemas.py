@@ -127,8 +127,8 @@ class SettingsResponse(BaseModel):
 class SettingsUpdate(BaseModel):
     meat_tracking_enabled: bool
     company_name: str
-    navbar_brand_en: str
-    navbar_brand_nl: str
+    site_title_en: str
+    site_title_nl: str
     default_language: Literal["nl", "en"]
     
 
