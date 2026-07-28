@@ -43,8 +43,8 @@ def test_import_replaces_existing_data(client, db_session, auth_headers):
         "settings": {
             "meat_tracking_enabled": False,
             "company_name": "Test Co",
-            "navbar_brand_en": "Test",
-            "navbar_brand_nl": "Test",
+            "site_title_en": "Test",
+            "site_title_nl": "Test",
             "default_language": "en",
         },
     }

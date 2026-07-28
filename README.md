@@ -234,7 +234,8 @@ Current settings:
 
 * **Meat tracking** — whether meat type data is tracked and shown at all. Off by default; when off, meat reference data still has its table but nothing gets seeded or displayed.
 * **Company name** — shown in the site footer.
-* **Navbar brand (English / Dutch)** — the site title shown in the navbar, per language.
+* **Site title (English / Dutch)** — the title shown in the navbar, per language.
+* **Logo** — an optional image shown beside the site title in the navbar. Uploading replaces any existing logo; supports PNG, JPG, and SVG up to 2MB.
 * **Default language** — which language (`nl`/`en`) the public matrix page loads in by default.
 
 ---
@@ -265,6 +266,8 @@ python3 -c "import secrets; print(secrets.token_hex(32))"
 By default, the project runs against a local SQLite file — no separate database server required. `DATABASE_URL` can be changed to point at a hosted PostgreSQL database instead for a more production-style setup; both are supported through the same variable, since SQLAlchemy abstracts over the underlying database engine.
 
 `.env` is gitignored. `.env.example` is committed as a template with placeholder values only.
+
+Uploaded vendor logos are saved to `src/product_management/static/logos/` and are also gitignored (with a `.gitkeep` placeholder so the empty folder itself stays tracked), since they're vendor-specific uploads rather than application code.
 
 ---
 
@@ -354,6 +357,8 @@ Go to `http://localhost:5173/login` and sign in with the `ADMIN_USERNAME`/`ADMIN
 **Admin-only (require a valid Bearer token)**
 * `POST` / `PUT` / `DELETE` on `/items/{id}`, `/allergens/{id}`, `/meat-types/{id}`, `/categories/{id}`
 * `PUT /config` – update app settings
+* `POST /config/logo` – upload a vendor logo (PNG/JPG/SVG, max 2MB), replacing any existing one
+* `DELETE /config/logo` – remove the current logo
 * `GET /data/export` – export all business data (items, allergens, meat types, categories, settings) as JSON — excludes the admin account
 * `POST /data/import` – **replace** all business data with the contents of an imported JSON export (destructive; the admin account is untouched)
 
@@ -366,7 +371,7 @@ Go to `http://localhost:5173/login` and sign in with the `ADMIN_USERNAME`/`ADMIN
 * `/admin` – Admin landing page, linking to each management section (Items, Settings, and grouped reference data: Categories, Allergens, Meat Types). Protected — redirects to `/login` if not authenticated.
 * `/admin/items` – Create, edit, and delete items: name, category (dropdown), allergens and meat types (checkboxes). Invalid codes can't be submitted through this UI, but the backend still validates and reports warnings if bypassed via direct API access. Paginated (25 per page).
 * `/admin/categories`, `/admin/allergens`, `/admin/meat-types` – Each uses the same reusable list/create/edit/delete UI, since all three share the same code + English/Dutch description shape.
-* `/admin/settings` – Update company name, navbar branding, default language, and the meat tracking toggle. Requires confirmation before saving, since these affect the whole site.
+* `/admin/settings` – Update company name, site title, logo, default language, and the meat tracking toggle. Requires confirmation before saving, since these affect the whole site.
 * `/admin/account` – Change the admin's own password. Requires the current password, and confirming a new password twice client-side before submitting. On success, the session ends immediately and the admin must log in again.
 
 `/admin/settings` also includes a **Backup & Restore** section: "Export all data" downloads a full JSON snapshot (items, allergens, meat types, categories, settings), and "Import data" accepts a previously exported file and **replaces** all current business data with its contents. Import is explicitly confirmed given it's destructive and irreversible; the admin account itself is untouched by either operation.
@@ -424,8 +429,6 @@ A few small, deliberate additions, plus known tradeoffs worth documenting honest
 
 Planned extensions include:
 
-* CSV export of items, alongside the existing PDF export
-* Vendor logo upload
 * PostgreSQL as a documented, tested alternative to SQLite for hosted deployments
 * Docker and CI (automated test runs on push)
 

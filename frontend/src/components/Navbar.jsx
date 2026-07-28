@@ -5,18 +5,29 @@ import { useLanguage } from '../localization.jsx';
 function Navbar() {
   const { language, setLanguage } = useLanguage();
   const [brand, setBrand] = useState('');
+  const [logoPath, setLogoPath] = useState(null);
 
   useEffect(() => {
     fetch('http://localhost:8000/config')
       .then((res) => res.json())
       .then((data) => {
-        setBrand(language === 'nl' ? data.navbar_brand_nl : data.navbar_brand_en);
+        setBrand(language === 'nl' ? data.site_title_nl : data.site_title_en);
+        setLogoPath(data.logo_path);
       });
   }, [language]);
 
   return (
     <nav className="navbar">
-      <Link to="/" className="navbar-brand">{brand}</Link>
+      <Link to="/" className="navbar-brand">
+        {logoPath && (
+          <img
+            src={`http://localhost:8000/static/logos/${logoPath}`}
+            alt=""
+            className="navbar-logo"
+          />
+        )}
+        {brand}
+      </Link>
       <div className="navbar-links">
         
         <a  href={`http://localhost:8000/items/pdf?language=${language}`}

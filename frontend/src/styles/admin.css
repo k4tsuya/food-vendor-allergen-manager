@@ -221,3 +221,39 @@
 .admin-import-button {
   background-color: #B3261E;
 }
+
+.admin-logo-preview {
+  max-height: 60px;
+  max-width: 200px;
+  display: block;
+  margin-bottom: 1rem;
+  border: 1px solid #E5E3DC;
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+
+.admin-settings-columns {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.admin-settings-columns .admin-form {
+  flex: 1;
+  min-width: 280px;
+}
+
+.admin-logo-section {
+  flex: 1;
+  min-width: 220px;
+  max-width: 300px;
+  border: 1px solid #E5E3DC;
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.admin-logo-title {
+  font-size: 1rem;
+  margin: 0 0 1rem;
+}

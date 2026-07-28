@@ -218,3 +218,4 @@ product_management.db
 logs/
 app.log
 app.log.*
+src/product_management/static/logos/*

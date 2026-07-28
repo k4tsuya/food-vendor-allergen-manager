@@ -67,3 +67,19 @@
 .footer p {
   margin: 0;
 }
+
+.navbar-brand {
+  color: #FAFAF8;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.navbar-logo {
+  height: 28px;
+  width: auto;
+}

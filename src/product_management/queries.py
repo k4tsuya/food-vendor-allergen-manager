@@ -285,8 +285,8 @@ def get_settings(db: Session) -> AppSettings:
         settings = AppSettings(
             meat_tracking_enabled=False,
             company_name="Your Company Name",
-            navbar_brand_en="Allergen Check",
-            navbar_brand_nl="Allergenen Check",
+            site_title_en="Allergen Check",
+            site_title_nl="Allergenen Check",
             default_language="nl",
         )
         db.add(settings)
@@ -300,8 +300,8 @@ def update_settings(db: Session, data: "SettingsUpdate") -> AppSettings:
     settings = get_settings(db)
     settings.meat_tracking_enabled = data.meat_tracking_enabled
     settings.company_name = data.company_name
-    settings.navbar_brand_en = data.navbar_brand_en
-    settings.navbar_brand_nl = data.navbar_brand_nl
+    settings.site_title_en = data.site_title_en
+    settings.site_title_nl = data.site_title_nl
     settings.default_language = data.default_language
     db.commit()
     db.refresh(settings)
@@ -335,8 +335,8 @@ def export_all_data(db: Session) -> dict:
         "settings": {
             "meat_tracking_enabled": get_settings(db).meat_tracking_enabled,
             "company_name": get_settings(db).company_name,
-            "navbar_brand_en": get_settings(db).navbar_brand_en,
-            "navbar_brand_nl": get_settings(db).navbar_brand_nl,
+            "navbar_brand_en": get_settings(db).site_title_en,
+            "navbar_brand_nl": get_settings(db).site_title_nl,
             "default_language": get_settings(db).default_language,
         },
     }
@@ -379,8 +379,8 @@ def import_all_data(db: Session, data: "ExportData") -> None:
     settings = get_settings(db)
     settings.meat_tracking_enabled = data.settings.meat_tracking_enabled
     settings.company_name = data.settings.company_name
-    settings.navbar_brand_en = data.settings.navbar_brand_en
-    settings.navbar_brand_nl = data.settings.navbar_brand_nl
+    settings.site_title_en = data.settings.site_title_en
+    settings.site_title_nl = data.settings.site_title_nl
     settings.default_language = data.settings.default_language
 
     db.commit()
