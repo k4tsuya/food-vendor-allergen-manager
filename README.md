@@ -110,6 +110,7 @@ src/product_management/
 │   ├── categories.py           # /categories routes (public read, authenticated write)
 │   ├── config.py                # /config route — app-wide settings (public read, authenticated write)
 │   ├── auth.py                    # /auth/login, /auth/me, /auth/password
+│   ├── data.py                      # /data/export, /data/import — full backup/restore
 │   └── health.py                    # /health route
 ├── models.py               # SQLAlchemy models (Item, Allergen, MeatType, Category, Admin, AppSettings)
 ├── schemas.py               # Pydantic schemas
@@ -353,6 +354,8 @@ Go to `http://localhost:5173/login` and sign in with the `ADMIN_USERNAME`/`ADMIN
 **Admin-only (require a valid Bearer token)**
 * `POST` / `PUT` / `DELETE` on `/items/{id}`, `/allergens/{id}`, `/meat-types/{id}`, `/categories/{id}`
 * `PUT /config` – update app settings
+* `GET /data/export` – export all business data (items, allergens, meat types, categories, settings) as JSON — excludes the admin account
+* `POST /data/import` – **replace** all business data with the contents of an imported JSON export (destructive; the admin account is untouched)
 
 ---
 
@@ -365,6 +368,8 @@ Go to `http://localhost:5173/login` and sign in with the `ADMIN_USERNAME`/`ADMIN
 * `/admin/categories`, `/admin/allergens`, `/admin/meat-types` – Each uses the same reusable list/create/edit/delete UI, since all three share the same code + English/Dutch description shape.
 * `/admin/settings` – Update company name, navbar branding, default language, and the meat tracking toggle. Requires confirmation before saving, since these affect the whole site.
 * `/admin/account` – Change the admin's own password. Requires the current password, and confirming a new password twice client-side before submitting. On success, the session ends immediately and the admin must log in again.
+
+`/admin/settings` also includes a **Backup & Restore** section: "Export all data" downloads a full JSON snapshot (items, allergens, meat types, categories, settings), and "Import data" accepts a previously exported file and **replaces** all current business data with its contents. Import is explicitly confirmed given it's destructive and irreversible; the admin account itself is untouched by either operation.
 
 Each admin sub-page shows a "← Back" link beside its own title, returning to `/admin`; "Log out" stays persistently visible top-right across every admin page.
 

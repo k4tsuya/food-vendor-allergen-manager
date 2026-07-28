@@ -211,3 +211,13 @@
   cursor: not-allowed;
   text-decoration: none;
 }
+
+.admin-backup-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.admin-import-button {
+  background-color: #B3261E;
+}

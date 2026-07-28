@@ -4,7 +4,7 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from src.product_management.routers import items, allergens, health, config, meat_types, auth
+from src.product_management.routers import items, allergens, health, config, meat_types, auth, data
 from src.product_management.seed.insert_data import load_allergens, load_meat_types, load_items, load_admin, load_categories
 from src.product_management.core.database import SessionLocal, engine
 from src.product_management.models import Base
@@ -74,3 +74,4 @@ app.include_router(config.router)
 app.include_router(meat_types.router)
 app.include_router(auth.router)
 app.include_router(categories.router)
+app.include_router(data.router)

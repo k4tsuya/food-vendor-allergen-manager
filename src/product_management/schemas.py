@@ -135,3 +135,12 @@ class SettingsUpdate(BaseModel):
 class PasswordChangeRequest(BaseModel):
     current_password: str
     new_password: str
+    
+
+class ExportData(BaseModel):
+    exported_at: str
+    allergens: list[AllergenCreate]
+    meat_types: list[MeatTypeCreate]
+    categories: list[CategoryCreate]
+    items: list[ItemCreate]
+    settings: SettingsUpdate
