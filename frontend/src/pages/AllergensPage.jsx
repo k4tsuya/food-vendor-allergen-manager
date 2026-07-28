@@ -127,7 +127,7 @@ function AllergensPage() {
                   {allergens.map((allergen) => (
                     <th key={allergen.id} className="matrix-allergen-header">
                       <img
-                        src={`http://localhost:8000/static/icons/${allergen.code}.png`}
+                        src={`http://localhost:8000/static/icons/allergens/${allergen.code}.png`}
                         alt={language === 'nl' ? allergen.description_nl : allergen.description_en}
                         title={language === 'nl' ? allergen.description_nl : allergen.description_en}
                         className="matrix-icon"
@@ -207,7 +207,7 @@ function AllergensPage() {
                         {item.allergens.map((allergen) => (
                           <span key={allergen.id} className="item-card-tag">
                             <img
-                              src={`http://localhost:8000/static/icons/${allergen.code}.png`}
+                              src={`http://localhost:8000/static/icons/allergens/${allergen.code}.png`}
                               alt={language === 'nl' ? allergen.description_nl : allergen.description_en}
                               className="item-card-tag-icon"
                             />
@@ -275,7 +275,7 @@ function AllergensPage() {
           {allergens.map((allergen) => (
             <span key={allergen.id} className="allergen-key-item">
               <img
-                src={`http://localhost:8000/static/icons/${allergen.code}.png`}
+                src={`http://localhost:8000/static/icons/allergens/${allergen.code}.png`}
                 alt={language === 'nl' ? allergen.description_nl : allergen.description_en}
                 className="allergen-key-icon"
               />

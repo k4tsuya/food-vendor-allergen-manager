@@ -147,7 +147,7 @@ class AllergenMatrixPDF(FPDF):
                 ),
             )
 
-            self.set_fill_color(235, 235, 235 if fill else 255)
+            self.set_fill_color((235, 235, 235) if fill else (255, 255, 255))
             fill = not fill
 
             self.cell(
