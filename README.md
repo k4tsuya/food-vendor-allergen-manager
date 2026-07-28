@@ -106,7 +106,7 @@ src/product_management/
 │   ├── logging_config.py     # Global logging setup (format, level)
 │   └── audit.py                # Lightweight audit logging for admin write actions
 ├── routers/
-│   ├── items.py             # /items, /gluten-free, /items/pdf routes (search/filter, CRUD)
+│   ├── items.py             # /items, /items/pdf routes (search/filter, CRUD)
 │   ├── allergens.py          # /allergens routes (public read, authenticated write)
 │   ├── meat_types.py          # /meat-types routes (public read, authenticated write)
 │   ├── categories.py           # /categories routes (public read, authenticated write)
@@ -350,8 +350,7 @@ Go to `http://localhost:5173/login` and sign in with the `ADMIN_USERNAME`/`ADMIN
 ## 🔍 Available Endpoints
 
 **Public**
-* `GET /items` – list items with their allergens and meat types. Supports `limit`/`offset` (pagination), `search`, `exclude_allergens` (repeatable), `meat_types` (repeatable), `categories` (repeatable)
-* `GET /gluten-free` – list items with no gluten allergen (paginated)
+* `GET /items` – list items with their allergens and meat types. Supports `limit`/`offset` (pagination), `search`, `exclude_allergens` (repeatable), `meat_types` (repeatable), `categories` (repeatable). (A dedicated `/gluten-free` endpoint existed early on, before general filtering — removed once it became fully redundant with `?exclude_allergens=gluten`.)
 * `GET /allergens` – list all known allergens
 * `GET /meat-types` – list all known meat types (empty if meat tracking is disabled)
 * `GET /categories` – list all categories
@@ -401,7 +400,6 @@ Each admin sub-page shows a "← Back" link beside its own title, returning to `
 * CSS Grid, sticky positioning, and media queries for responsive, dual (table/card) layouts
 * React Context, for sharing state (language, auth) across components without prop drilling
 * Database migrations with Alembic, and why they matter once a project has real data to preserve
-* Managing environment-specific configuration and secrets (`.env`) instead of hardcoding values
 * Building a reusable admin CRUD component shared across multiple resource types, instead of duplicating near-identical forms
 * Writing composable SQLAlchemy queries with multiple optional filters applied conditionally
 * Testing an authenticated API with pytest fixtures, including handling stateful complications like rate limiter state leaking between tests

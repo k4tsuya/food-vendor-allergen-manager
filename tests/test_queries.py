@@ -2,7 +2,6 @@ from src.product_management.models import Item, Allergen, MeatType
 from src.product_management.queries import (
     list_items,
     list_allergens,
-    get_gluten_free_items,
     pdf_list_items,
 )
 
@@ -25,21 +24,6 @@ def test_list_allergens_returns_sorted_by_description(db_session):
     result = list_allergens(db_session)
 
     assert [a.description_en for a in result] == ["Gluten", "Soy"]
-
-
-def test_get_gluten_free_items_excludes_gluten(db_session):
-    gluten = Allergen(code="gluten", description_en="Gluten", description_nl="Gluten")
-    milk = Allergen(code="milk", description_en="Milk", description_nl="Melk")
-
-    kroket = Item(name="Kroket", allergens=[gluten, milk])
-    fishstick = Item(name="Fishstick", allergens=[milk])
-
-    db_session.add_all([kroket, fishstick])
-    db_session.commit()
-
-    result = get_gluten_free_items(db_session)
-
-    assert [i.name for i in result] == ["Fishstick"]
 
 
 def test_pdf_list_items_returns_correct_shape(db_session):

@@ -7,7 +7,6 @@ keeps working without changes.
 
 from src.product_management.queries.items import (
     list_items,
-    get_gluten_free_items,
     pdf_list_items,
     get_item,
     create_item,

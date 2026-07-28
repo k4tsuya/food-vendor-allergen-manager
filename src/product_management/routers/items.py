@@ -1,18 +1,18 @@
-"""Routes for items, gluten-free filtering, and PDF export."""
+"""Routes for items and PDF export."""
 
 from pathlib import Path
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Request
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import Literal
 
 
 from src.product_management.core.database import get_db
-from src.product_management.core.security import get_current_admin
+from src.product_management.core.security import get_current_admin, limiter
 from src.product_management.models import Admin
 from src.product_management.schemas import ItemResponse, ItemCreate, ItemUpdate, ItemWriteResponse
 from src.product_management.queries import (
-    list_items, get_gluten_free_items, pdf_list_items, create_item, update_item, delete_item)
+    list_items, pdf_list_items, create_item, update_item, delete_item)
 from src.product_management.pdf_generator import AllergenMatrixPDF
 from src.product_management.core.audit import log_admin_action
 
@@ -36,7 +36,7 @@ def list_all_items(
     categories: list[str] | None = Query(default=None),
     meat_types: list[str] | None = Query(default=None),
     db: Session = Depends(get_db),
-):
+) -> list:
     """Return items, paginated and optionally filtered."""
     return list_items(
         db,
@@ -47,12 +47,6 @@ def list_all_items(
         meat_types=meat_types,
         categories=categories,
     )
-
-
-@router.get("/gluten-free", response_model=list[ItemResponse])
-def list_gluten_free_items(db: Session = Depends(get_db), limit: int = 50, offset: int = 0):
-    """Return all gluten-free items."""
-    return get_gluten_free_items(db, limit, offset)
 
 
 @router.get("/items/pdf", response_class=FileResponse)
@@ -79,7 +73,9 @@ def download_items_pdf(language: Literal["en", "nl"] = "nl", db: Session = Depen
 
 
 @router.post("/items", response_model=ItemWriteResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("30/minute")
 def create_new_item(
+    request: Request,
     data: ItemCreate,
     current_admin: Admin = Depends(get_current_admin),
     db: Session = Depends(get_db),
@@ -91,7 +87,9 @@ def create_new_item(
 
 
 @router.put("/items/{item_id}", response_model=ItemWriteResponse)
+@limiter.limit("30/minute")
 def update_existing_item(
+    request: Request,
     item_id: int,
     data: ItemUpdate,
     current_admin: Admin = Depends(get_current_admin),
@@ -109,7 +107,9 @@ def update_existing_item(
 
 
 @router.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("30/minute")
 def delete_existing_item(
+    request: Request,
     item_id: int,
     current_admin: Admin = Depends(get_current_admin),
     db: Session = Depends(get_db),

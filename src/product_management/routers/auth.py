@@ -39,27 +39,15 @@ def login(request: Request, credentials: LoginRequest, db: Session = Depends(get
     return TokenResponse(access_token=token)
 
 
-@router.post("/auth/login", response_model=TokenResponse)
-def login(credentials: LoginRequest, db: Session = Depends(get_db)):
-    """Authenticate an admin and return a JWT access token."""
-    admin = db.query(Admin).filter_by(username=credentials.username).first()
-
-    if not admin or not verify_password(credentials.password, admin.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-        )
-
-    token = create_access_token(admin.username)
-    return TokenResponse(access_token=token)
-
 @router.get("/auth/me")
 def get_me(current_admin: Admin = Depends(get_current_admin)):
     """Return the currently authenticated admin's username. Used to verify a token is valid."""
     return {"username": current_admin.username}
 
 @router.put("/auth/password")
+@limiter.limit("5/minute")
 def change_password(
+    request: Request,
     data: PasswordChangeRequest,
     current_admin: Admin = Depends(get_current_admin),
     db: Session = Depends(get_db),

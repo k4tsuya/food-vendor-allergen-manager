@@ -1,6 +1,6 @@
 """Queries for items."""
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from src.product_management.models import Item, Allergen, MeatType
 from src.product_management.schemas import ItemAllergenView, ItemCreate, ItemUpdate
@@ -15,8 +15,10 @@ def list_items(
     meat_types: list[str] | None = None,
     categories: list[str] | None = None,
 ) -> list[Item]:
-    """Query items, paginated and optionally filtered."""
-    query = db.query(Item)
+    query = db.query(Item).options(
+        selectinload(Item.allergens),
+        selectinload(Item.meat_types),
+    )
 
     if search:
         query = query.filter(Item.name.ilike(f"%{search}%"))
@@ -39,17 +41,6 @@ def list_items(
     )
 
 
-def get_gluten_free_items(db: Session, limit: int = 50, offset: int = 0) -> list[Item]:
-    """Query all gluten-free items."""
-    return (
-        db.query(Item)
-        .filter(~Item.allergens.any(Allergen.code == "gluten"))
-        .limit(limit)
-        .offset(offset)
-        .all()
-    )
-
-
 def pdf_list_items(db: Session) -> list[ItemAllergenView]:
     """List all items with their allergens."""
     items = list_items(db)
@@ -65,7 +56,12 @@ def pdf_list_items(db: Session) -> list[ItemAllergenView]:
 
 def get_item(db: Session, item_id: int) -> Item | None:
     """Query a single item by id."""
-    return db.query(Item).filter_by(id=item_id).first()
+    return (
+        db.query(Item)
+        .options(selectinload(Item.allergens), selectinload(Item.meat_types))
+        .filter_by(id=item_id)
+        .first()
+    )
 
 
 def create_item(db: Session, data: "ItemCreate") -> tuple[Item, list[str]]:

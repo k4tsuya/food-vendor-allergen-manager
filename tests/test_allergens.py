@@ -94,15 +94,3 @@ def test_list_allergens_endpoint(client, db_session):
     assert response.json()[0]["code"] == "gluten"
 
 
-def test_gluten_free_endpoint_excludes_gluten_items(client, db_session):
-    gluten = Allergen(code="gluten", description_en="Gluten", description_nl="Gluten")
-    item_with_gluten = Item(name="Bread", allergens=[gluten])
-    item_without_gluten = Item(name="Fishstick")
-
-    db_session.add_all([item_with_gluten, item_without_gluten])
-    db_session.commit()
-
-    response = client.get("/gluten-free")
-
-    names = [i["name"] for i in response.json()]
-    assert names == ["Fishstick"]
