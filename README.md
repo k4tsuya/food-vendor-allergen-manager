@@ -1,4 +1,6 @@
-# Snack Bar Product & Allergen Management
+# Food Vendor Allergen Manager
+
+![Tests](https://github.com/k4tsuya/product_allergies_management/actions/workflows/tests.yml/badge.svg)
 
 ## 📌 Project Overview
 
@@ -293,6 +295,12 @@ For a fresh clone of this project, running `alembic upgrade head` once builds th
 
 ---
 
+## 🔁 Continuous Integration
+
+Every push and pull request to `main` automatically runs the full test suite via **GitHub Actions** (`.github/workflows/tests.yml`) — installs dependencies, then runs `pytest`, in a clean environment separate from any local machine. The badge at the top of this README reflects the current status.
+
+---
+
 ## 🚀 Running the Project
 
 The backend and frontend run as two separate servers during development.
@@ -430,7 +438,7 @@ A few small, deliberate additions, plus known tradeoffs worth documenting honest
 Planned extensions include:
 
 * PostgreSQL as a documented, tested alternative to SQLite for hosted deployments
-* Docker and CI (automated test runs on push)
+* Docker (containerized deployment)
 
 ---
 
