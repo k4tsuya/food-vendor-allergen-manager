@@ -50,8 +50,6 @@ def test_list_items_respects_limit_and_offset(db_session):
     assert len(result) == 2
 
 
-
-
 def test_list_items_search_filters_by_name(db_session):
     db_session.add(Item(name="Frikandel"))
     db_session.add(Item(name="Kroket"))
