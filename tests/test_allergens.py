@@ -1,4 +1,4 @@
-from src.product_management.models import Item, Allergen
+from src.product_management.models import Allergen, Item
 
 
 def test_create_allergen_requires_auth(client):

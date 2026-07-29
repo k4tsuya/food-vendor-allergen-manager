@@ -1,5 +1,5 @@
-from src.product_management.models import Admin
 from src.product_management.core.security import hash_password
+from src.product_management.models import Admin
 
 
 def test_login_succeeds_with_correct_credentials(client, db_session):

@@ -1,4 +1,4 @@
-from src.product_management.models import Item, Allergen
+from src.product_management.models import Allergen, Item
 
 
 def test_download_pdf_endpoint_returns_pdf_file(client, db_session):

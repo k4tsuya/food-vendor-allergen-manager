@@ -3,12 +3,11 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-from src.product_management.models import Admin
-from src.product_management.core.security import hash_password
-from src.product_management.models import Base
+
 from main import app
 from src.product_management.core.database import get_db
-from src.product_management.core.security import limiter
+from src.product_management.core.security import hash_password, limiter
+from src.product_management.models import Admin, Base
 
 
 @pytest.fixture

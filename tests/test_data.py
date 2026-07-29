@@ -1,4 +1,4 @@
-from src.product_management.models import Item, Allergen, MeatType, Category
+from src.product_management.models import Allergen, Item
 
 
 def test_export_requires_auth(client):
@@ -55,3 +55,9 @@ def test_import_replaces_existing_data(client, db_session, auth_headers):
     }
 
     response = client.post("/data/import", json=import_payload, headers=auth_headers)
+    assert response.status_code == 200
+
+    items = db_session.query(Item).all()
+    names = [i.name for i in items]
+    assert "Old Item" not in names
+    assert "New Item" in names

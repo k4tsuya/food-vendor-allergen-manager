@@ -2,15 +2,17 @@
 
 import os
 from datetime import datetime, timedelta, timezone
-from jose import jwt, JWTError
-from passlib.context import CryptContext
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
-from src.product_management.core.database import get_db
-from src.product_management.models import Admin
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from sqlalchemy.orm import Session
+
+from src.product_management.core.database import get_db
+from src.product_management.models import Admin
 
 limiter = Limiter(key_func=get_remote_address)
 

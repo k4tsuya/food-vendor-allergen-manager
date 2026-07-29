@@ -1,7 +1,7 @@
-from src.product_management.models import Item, Allergen, MeatType
+from src.product_management.models import Allergen, Item, MeatType
 from src.product_management.queries import (
-    list_items,
     list_allergens,
+    list_items,
     pdf_list_items,
 )
 
@@ -50,7 +50,6 @@ def test_list_items_respects_limit_and_offset(db_session):
     assert len(result) == 2
 
 
-from src.product_management.models import MeatType
 
 
 def test_list_items_search_filters_by_name(db_session):
