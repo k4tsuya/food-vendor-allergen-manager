@@ -10,6 +10,7 @@ from main import app
 from src.product_management.core.database import get_db
 from src.product_management.core.security import limiter
 
+
 @pytest.fixture
 def db_session():
     engine = create_engine(
@@ -36,7 +37,8 @@ def client(db_session):
     yield TestClient(app)
 
     app.dependency_overrides.clear()
-    
+
+
 @pytest.fixture
 def auth_headers(client, db_session):
     db_session.add(Admin(username="testadmin", hashed_password=hash_password("testpass123")))
@@ -48,6 +50,7 @@ def auth_headers(client, db_session):
     )
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
 
 @pytest.fixture(autouse=True)
 def reset_rate_limiter():

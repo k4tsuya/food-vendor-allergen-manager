@@ -1,7 +1,8 @@
 """Module containing schemas for the item management app."""
 
-from pydantic import BaseModel, ConfigDict
 from typing import Literal
+
+from pydantic import BaseModel, ConfigDict
 
 
 class AllergenResponse(BaseModel):
@@ -35,7 +36,8 @@ class ItemResponse(BaseModel):
 class ItemAllergenView(BaseModel):
     name: str
     allergens: list[str]
-    
+
+
 class LoginRequest(BaseModel):
     username: str
     password: str
@@ -44,7 +46,8 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
-    
+
+
 class ItemCreate(BaseModel):
     name: str
     category_key: str | None = None
@@ -62,7 +65,8 @@ class ItemUpdate(BaseModel):
 class ItemWriteResponse(BaseModel):
     item: ItemResponse
     warnings: list[str] = []
-    
+
+
 class AllergenCreate(BaseModel):
     code: str
     description_en: str
@@ -83,7 +87,8 @@ class MeatTypeCreate(BaseModel):
 class MeatTypeUpdate(BaseModel):
     description_en: str
     description_nl: str
-    
+
+
 class CategoryResponse(BaseModel):
     id: int
     code: str
@@ -102,16 +107,6 @@ class CategoryCreate(BaseModel):
 class CategoryUpdate(BaseModel):
     description_en: str
     description_nl: str
-    
-
-class SettingsResponse(BaseModel):
-    meat_tracking_enabled: bool
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class SettingsUpdate(BaseModel):
-    meat_tracking_enabled: bool
 
 
 class SettingsResponse(BaseModel):
@@ -130,12 +125,12 @@ class SettingsUpdate(BaseModel):
     site_title_en: str
     site_title_nl: str
     default_language: Literal["nl", "en"]
-    
+
 
 class PasswordChangeRequest(BaseModel):
     current_password: str
     new_password: str
-    
+
 
 class ExportData(BaseModel):
     exported_at: str

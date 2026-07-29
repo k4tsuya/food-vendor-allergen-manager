@@ -1,20 +1,25 @@
 """Authentication routes."""
 
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
-from src.product_management.core.database import get_db
-from src.product_management.core.security import verify_password, create_access_token, get_current_admin, limiter, hash_password
-from src.product_management.models import Admin
-from src.product_management.schemas import LoginRequest, TokenResponse, PasswordChangeRequest
 from src.product_management.core.audit import log_admin_action
-from fastapi import Request
+from src.product_management.core.database import get_db
+from src.product_management.core.security import (
+    create_access_token,
+    get_current_admin,
+    hash_password,
+    limiter,
+    verify_password,
+)
+from src.product_management.models import Admin
+from src.product_management.schemas import LoginRequest, PasswordChangeRequest, TokenResponse
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-
 
 
 @router.post("/auth/login", response_model=TokenResponse)
@@ -23,18 +28,20 @@ def login(request: Request, credentials: LoginRequest, db: Session = Depends(get
     """Authenticate an admin and return a JWT access token."""
     admin = db.query(Admin).filter_by(username=credentials.username).first()
 
+    client_host = request.client.host if request.client else "unknown"
+
     if not admin or not verify_password(credentials.password, admin.hashed_password):
         logger.warning(
             "Failed login attempt for username '%s' from %s",
             credentials.username,
-            request.client.host,
+            client_host,
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
         )
 
-    logger.info("Successful login for '%s' from %s", admin.username, request.client.host)
+    logger.info("Successful login for '%s' from %s", admin.username, client_host)
     token = create_access_token(admin.username)
     return TokenResponse(access_token=token)
 
@@ -44,6 +51,7 @@ def get_me(current_admin: Admin = Depends(get_current_admin)):
     """Return the currently authenticated admin's username. Used to verify a token is valid."""
     return {"username": current_admin.username}
 
+
 @router.put("/auth/password")
 @limiter.limit("5/minute")
 def change_password(
@@ -52,9 +60,14 @@ def change_password(
     current_admin: Admin = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
-    """Change the current admin's password. Requires the current password to be provided correctly."""
+    """Change the current admin's password. Requires the current password to be correct."""
+
+    client_host = request.client.host if request.client else "unknown"
+
     if not verify_password(data.current_password, current_admin.hashed_password):
-        logger.warning("Failed password change attempt for '%s' (wrong current password)", current_admin.username)
+        logger.warning(
+            "Failed login attempt for username '%s' from %s", current_admin.username, client_host
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Current password is incorrect",

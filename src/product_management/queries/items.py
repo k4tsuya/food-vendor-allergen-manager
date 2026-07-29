@@ -2,7 +2,7 @@
 
 from sqlalchemy.orm import Session, selectinload
 
-from src.product_management.models import Item, Allergen, MeatType
+from src.product_management.models import Allergen, Item, MeatType
 from src.product_management.schemas import ItemAllergenView, ItemCreate, ItemUpdate
 
 
@@ -96,7 +96,7 @@ def update_item(db: Session, item_id: int, data: "ItemUpdate") -> tuple[Item, li
         return None
 
     item.name = data.name
-    item.category_key = data.category_key
+    item.category_key = data.category_key  # type: ignore[assignment]
 
     warnings: list[str] = []
     resolved_allergens = []

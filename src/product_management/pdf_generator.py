@@ -1,25 +1,21 @@
 """Module for generating pdfs."""
 
-from collections.abc import Sequence, Callable
-from dataclasses import dataclass
+from collections.abc import Callable, Sequence
+from pathlib import Path
+
 from fpdf import FPDF
 from fpdf.enums import XPos, YPos
+
+from src.product_management.schemas import ItemAllergenView
 from src.product_management.seed.allergens import ALLERGENS
 
-
 TEXTS = {
-    "en": { "title": "Allergen Matrix",
-           "footer": "Page ",
+    "en": {
+        "title": "Allergen Matrix",
+        "footer": "Page ",
     },
-    "nl": { "title": "Allergenen Lijst",
-           "footer": "Pagina "
-    }}
-
-
-@dataclass
-class ItemAllergenView:
-    name: str
-    allergens: list[str]
+    "nl": {"title": "Allergenen Lijst", "footer": "Pagina "},
+}
 
 
 class AllergenMatrixPDF(FPDF):
@@ -29,16 +25,15 @@ class AllergenMatrixPDF(FPDF):
         self.language = language
         self.texts = TEXTS[language]
 
-    def get_allergen_labels(self, language: str) -> dict[str, dict[str, str]]:
+    def get_allergen_labels(self, language: str) -> dict[str, dict[str, str | Path]]:
         language = self.language
         return {
             code: {
-            "label": data[language],
-            "icon": data["icon"],
+                "label": data[language],
+                "icon": data["icon"],
             }
             for code, data in ALLERGENS.items()
         }
-
 
     # ---------- Page setup ----------
     def start_new_page(
@@ -53,7 +48,7 @@ class AllergenMatrixPDF(FPDF):
 
         # Title
         self.set_font("helvetica", "B", 12)
-        self.cell(0, 10, f"{self.texts["title"]}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
+        self.cell(0, 10, f"{self.texts['title']}", new_x=XPos.LMARGIN, new_y=YPos.NEXT)
 
         self.ln(3)
 
@@ -105,7 +100,14 @@ class AllergenMatrixPDF(FPDF):
     def footer(self) -> None:
         self.set_y(-15)
         self.set_font("helvetica", "I", 8)
-        self.cell(0, 10, f"{self.texts["footer"]} {self.page_no()} / {{nb}}", new_x=XPos.LMARGIN, new_y=YPos.NEXT, align="C")
+        self.cell(
+            0,
+            10,
+            f"{self.texts['footer']} {self.page_no()} / {{nb}}",
+            new_x=XPos.LMARGIN,
+            new_y=YPos.NEXT,
+            align="C",
+        )
 
     # ---------- Main generator ----------
     def generate_allergen_matrix_pdf(
@@ -116,7 +118,6 @@ class AllergenMatrixPDF(FPDF):
     ) -> None:
         allergen_labels = self.get_allergen_labels(language)
         allergen_codes = list(allergen_labels.keys())
-
 
         # Layout constants
         item_col_width = 30
@@ -161,9 +162,9 @@ class AllergenMatrixPDF(FPDF):
             for code in allergen_codes:
                 sorted(code)
                 if code in item.allergens:
-                    self.set_font('ZapfDingbats', '', 12)
+                    self.set_font("ZapfDingbats", "", 12)
                 else:
-                    self.set_font('helvetica', '', 8)
+                    self.set_font("helvetica", "", 8)
 
                 mark = "4" if code in item.allergens else ""
                 self.cell(
@@ -174,8 +175,7 @@ class AllergenMatrixPDF(FPDF):
                     align="C",
                     fill=True,
                 )
-            self.set_font('helvetica', '', 8)
-
+            self.set_font("helvetica", "", 8)
 
             self.ln()
 

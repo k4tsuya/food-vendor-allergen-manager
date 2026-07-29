@@ -92,5 +92,3 @@ def test_list_allergens_endpoint(client, db_session):
 
     assert response.status_code == 200
     assert response.json()[0]["code"] == "gluten"
-
-

@@ -38,7 +38,12 @@ def test_import_replaces_existing_data(client, db_session, auth_headers):
         "meat_types": [],
         "categories": [],
         "items": [
-            {"name": "New Item", "category_key": None, "allergen_codes": ["milk"], "meat_type_codes": []}
+            {
+                "name": "New Item",
+                "category_key": None,
+                "allergen_codes": ["milk"],
+                "meat_type_codes": [],
+            }
         ],
         "settings": {
             "meat_tracking_enabled": False,

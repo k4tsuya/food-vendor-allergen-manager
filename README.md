@@ -80,6 +80,8 @@ I intentionally chose this tech stack to **learn and explore different tools** b
 * **python-jose** – JWT creation and verification
 * **slowapi** – rate limiting on the login endpoint
 * **pytest** – automated testing, with an isolated in-memory test database
+* **ruff** – linting and formatting
+* **mypy** – static type checking
 
 **Frontend**
 * **React** – component-based UI library
@@ -297,7 +299,14 @@ For a fresh clone of this project, running `alembic upgrade head` once builds th
 
 ## 🔁 Continuous Integration
 
-Every push and pull request to `main` automatically runs the full test suite via **GitHub Actions** (`.github/workflows/tests.yml`) — installs dependencies, then runs `pytest`, in a clean environment separate from any local machine. The badge at the top of this README reflects the current status.
+Every push and pull request to `main` automatically runs a full pipeline via **GitHub Actions** (`.github/workflows/tests.yml`), in a clean environment separate from any local machine:
+
+1. **Lint** — `ruff check .`
+2. **Format check** — `ruff format --check .`
+3. **Type check** — `mypy src/ main.py`
+4. **Tests** — `pytest tests/ -v`
+
+Each step must pass before the next runs, so the fastest, cheapest checks (lint, format) fail fast before the full test suite runs. The badge at the top of this README reflects the current status.
 
 ---
 
@@ -401,6 +410,7 @@ Each admin sub-page shows a "← Back" link beside its own title, returning to `
 * React Context, for sharing state (language, auth) across components without prop drilling
 * Database migrations with Alembic, and why they matter once a project has real data to preserve
 * Building a reusable admin CRUD component shared across multiple resource types, instead of duplicating near-identical forms
+* Practicing fixing real bugs that a static type checker (mypy) surfaced — a duplicate class definition silently overriding another, two unrelated classes sharing a name, and an unguarded optional attribute — rather than just running the tool
 * Writing composable SQLAlchemy queries with multiple optional filters applied conditionally
 * Testing an authenticated API with pytest fixtures, including handling stateful complications like rate limiter state leaking between tests
 * Structured application logging: consistent formatting, appropriate severity levels, a separate audit-trail logger for admin actions, and logging full tracebacks server-side while returning generic error messages to clients

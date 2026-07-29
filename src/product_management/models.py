@@ -1,6 +1,6 @@
 """Module containing models for the item management app."""
 
-from sqlalchemy import Column, ForeignKey, Numeric, String, Table
+from sqlalchemy import Column, ForeignKey, String, Table
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
@@ -8,7 +8,6 @@ from sqlalchemy.orm import (
     relationship,
 )
 
-from src.product_management.core.database import engine, SessionLocal
 
 class Base(DeclarativeBase):
     pass
@@ -63,8 +62,7 @@ class Item(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     category_key: Mapped[str] = mapped_column(String(100), nullable=True)
-    
-    
+
     allergens: Mapped[list[Allergen]] = relationship(
         secondary=item_allergen,
         back_populates="items",
@@ -74,13 +72,15 @@ class Item(Base):
         back_populates="items",
     )
 
+
 class Admin(Base):
     __tablename__ = "admins"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
-    
+
+
 class Category(Base):
     __tablename__ = "categories"
 
@@ -88,6 +88,7 @@ class Category(Base):
     code: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     description_en: Mapped[str] = mapped_column(String(200), nullable=False)
     description_nl: Mapped[str] = mapped_column(String(200), nullable=False)
+
 
 class AppSettings(Base):
     __tablename__ = "app_settings"

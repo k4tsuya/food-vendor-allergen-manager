@@ -39,7 +39,8 @@ def test_delete_logo_clears_logo_path(client, auth_headers):
     response = client.delete("/config/logo", headers=auth_headers)
     assert response.status_code == 200
     assert response.json()["logo_path"] is None
-    
+
+
 def test_upload_logo_rejects_fake_png(client, auth_headers):
     response = client.post(
         "/config/logo",

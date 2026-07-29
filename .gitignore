@@ -210,12 +210,13 @@ __marimo__/
 .vscode/
 *.pdf
 *.db
+.continue
 src/product_management/seed/items.py
 src/product_management/seed/item_meat_types.py
 src/product_management/seed/item_categories.py
+src/product_management/static/logos/*
 generated/
 product_management.db
 logs/
 app.log
 app.log.*
-src/product_management/static/logos/*

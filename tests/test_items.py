@@ -1,5 +1,7 @@
 def test_create_item_requires_auth(client):
-    response = client.post("/items", json={"name": "Test", "allergen_codes": [], "meat_type_codes": []})
+    response = client.post(
+        "/items", json={"name": "Test", "allergen_codes": [], "meat_type_codes": []}
+    )
 
     assert response.status_code == 401
 
@@ -7,7 +9,12 @@ def test_create_item_requires_auth(client):
 def test_create_item_succeeds_with_auth(client, auth_headers):
     response = client.post(
         "/items",
-        json={"name": "Test Item", "category_key": "snacks", "allergen_codes": [], "meat_type_codes": []},
+        json={
+            "name": "Test Item",
+            "category_key": "snacks",
+            "allergen_codes": [],
+            "meat_type_codes": [],
+        },
         headers=auth_headers,
     )
 
@@ -29,14 +36,24 @@ def test_create_item_warns_on_invalid_allergen_code(client, auth_headers):
 def test_update_item_replaces_fields(client, auth_headers):
     create_response = client.post(
         "/items",
-        json={"name": "Original", "category_key": "snacks", "allergen_codes": [], "meat_type_codes": []},
+        json={
+            "name": "Original",
+            "category_key": "snacks",
+            "allergen_codes": [],
+            "meat_type_codes": [],
+        },
         headers=auth_headers,
     )
     item_id = create_response.json()["item"]["id"]
 
     update_response = client.put(
         f"/items/{item_id}",
-        json={"name": "Updated", "category_key": "bakery", "allergen_codes": [], "meat_type_codes": []},
+        json={
+            "name": "Updated",
+            "category_key": "bakery",
+            "allergen_codes": [],
+            "meat_type_codes": [],
+        },
         headers=auth_headers,
     )
 
@@ -78,5 +95,3 @@ def test_delete_item_requires_auth(client):
     response = client.delete("/items/1")
 
     assert response.status_code == 401
-    
-

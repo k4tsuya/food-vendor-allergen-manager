@@ -3,15 +3,17 @@
 import os
 import shutil
 import xml.etree.ElementTree as ET
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
-from sqlalchemy.orm import Session
 from pathlib import Path
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from sqlalchemy.orm import Session
+
 from src.product_management.core.audit import log_admin_action
 from src.product_management.core.database import get_db
 from src.product_management.core.security import get_current_admin
 from src.product_management.models import Admin
-from src.product_management.schemas import SettingsResponse, SettingsUpdate
 from src.product_management.queries import get_settings, update_settings
+from src.product_management.schemas import SettingsResponse, SettingsUpdate
 
 router = APIRouter()
 
@@ -51,7 +53,15 @@ def upload_logo(
     db: Session = Depends(get_db),
 ):
     """Upload a vendor logo, replacing any existing one."""
+
+    if not file.filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No filename provided.",
+        )
+
     extension = Path(file.filename).suffix.lower()
+
     if extension not in ALLOWED_EXTENSIONS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -66,11 +76,11 @@ def upload_logo(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Logo file is too large (max 2MB).",
         )
-        
+
     contents = file.file.read()
     validate_file_content(extension, contents)
     file.file.seek(0)
-        
+
     settings = get_settings(db)
     if settings.logo_path:
         old_file = LOGO_DIR / settings.logo_path
@@ -84,7 +94,7 @@ def upload_logo(
     with destination.open("wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    settings.logo_path = filename
+    settings.logo_path = filename  # type: ignore[assignment]
     db.commit()
     db.refresh(settings)
 
@@ -103,7 +113,7 @@ def delete_logo(
         old_file = LOGO_DIR / settings.logo_path
         if old_file.exists():
             old_file.unlink()
-        settings.logo_path = None
+        settings.logo_path = None  # type: ignore[assignment]
         db.commit()
         db.refresh(settings)
 

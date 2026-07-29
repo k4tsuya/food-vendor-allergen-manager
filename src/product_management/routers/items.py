@@ -1,22 +1,25 @@
 """Routes for items and PDF export."""
 
 from pathlib import Path
-from fastapi import APIRouter, Depends, status, HTTPException, Request
-from fastapi.responses import FileResponse
-from sqlalchemy.orm import Session
 from typing import Literal
 
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import FileResponse
+from sqlalchemy.orm import Session
 
+from src.product_management.core.audit import log_admin_action
 from src.product_management.core.database import get_db
 from src.product_management.core.security import get_current_admin, limiter
 from src.product_management.models import Admin
-from src.product_management.schemas import ItemResponse, ItemCreate, ItemUpdate, ItemWriteResponse
-from src.product_management.queries import (
-    list_items, pdf_list_items, create_item, update_item, delete_item)
 from src.product_management.pdf_generator import AllergenMatrixPDF
-from src.product_management.core.audit import log_admin_action
-
-
+from src.product_management.queries import (
+    create_item,
+    delete_item,
+    list_items,
+    pdf_list_items,
+    update_item,
+)
+from src.product_management.schemas import ItemCreate, ItemResponse, ItemUpdate, ItemWriteResponse
 
 router = APIRouter()
 
@@ -24,8 +27,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = BASE_DIR / "generated"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-
-from fastapi import Query
 
 @router.get("/items", response_model=list[ItemResponse])
 def list_all_items(
@@ -70,8 +71,6 @@ def download_items_pdf(language: Literal["en", "nl"] = "nl", db: Session = Depen
     )
 
 
-
-
 @router.post("/items", response_model=ItemWriteResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("30/minute")
 def create_new_item(
@@ -83,7 +82,7 @@ def create_new_item(
     """Create a new item. Requires authentication."""
     item, warnings = create_item(db, data)
     log_admin_action(current_admin, "created", "item", item.id)
-    return ItemWriteResponse(item=item, warnings=warnings)
+    return ItemWriteResponse(item=item, warnings=warnings)  # type: ignore[arg-type]
 
 
 @router.put("/items/{item_id}", response_model=ItemWriteResponse)
@@ -103,7 +102,7 @@ def update_existing_item(
 
     item, warnings = result
     log_admin_action(current_admin, "updated", "item", item.id)
-    return ItemWriteResponse(item=item, warnings=warnings)
+    return ItemWriteResponse(item=item, warnings=warnings)  # type: ignore[arg-type]
 
 
 @router.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -119,5 +118,5 @@ def delete_existing_item(
 
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
-    
+
     log_admin_action(current_admin, "deleted", "item", item_id)

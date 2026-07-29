@@ -1,15 +1,15 @@
 """Module for inserting data into the database."""
 
-import os
 import logging
+import os
+
 from sqlalchemy.orm import Session
-from src.product_management.models import Allergen, MeatType, Item, Category
+
+from src.product_management.core.security import hash_password
+from src.product_management.models import Admin, Allergen, Category, Item, MeatType
+from src.product_management.queries import get_settings
 from src.product_management.seed.allergens import ALLERGENS
 from src.product_management.seed.meat_types import MEAT_TYPES
-from src.product_management.models import Admin
-from src.product_management.core.security import hash_password
-from src.product_management.queries import get_settings
-
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,7 @@ SAMPLE_CATEGORIES = {
     "snacks": {"en": "Snacks", "nl": "Snacks"},
     "bakery": {"en": "Bakery", "nl": "Bakkerij"},
 }
+
 
 def load_allergens(db: Session) -> None:
     """Insert allergens into the db if they don't exist."""
@@ -86,26 +87,22 @@ def load_items(db: Session) -> None:
     meat_data_source: dict = SAMPLE_ITEM_MEAT_TYPES
     category_data_source: dict = SAMPLE_ITEM_CATEGORIES
 
-    allergens_by_code = {
-        allergen.code: allergen
-        for allergen in db.query(Allergen).all()
-    }
+    allergens_by_code = {allergen.code: allergen for allergen in db.query(Allergen).all()}
 
     meat_types_by_code = {}
     if settings.meat_tracking_enabled:
-        meat_types_by_code = {
-            meat_type.code: meat_type
-            for meat_type in db.query(MeatType).all()
-        }
+        meat_types_by_code = {meat_type.code: meat_type for meat_type in db.query(MeatType).all()}
 
     try:
         from src.product_management.seed.items import items
+
         data_source = items
     except ImportError:
         logger.info("Real data not found. Loading sample data...")
 
     try:
         from src.product_management.seed.item_meat_types import item_meat
+
         meat_data_source = item_meat
     except ImportError:
         logger.info("Real data not found. Loading sample data...")
@@ -128,8 +125,6 @@ def load_items(db: Session) -> None:
         db.add(item)
 
     db.commit()
-    
-
 
 
 def load_admin(db: Session) -> None:
@@ -146,7 +141,8 @@ def load_admin(db: Session) -> None:
 
     db.add(Admin(username=username, hashed_password=hash_password(password)))
     db.commit()
-    
+
+
 def load_categories(db: Session) -> None:
     """Insert categories into the db if they don't exist."""
     for code, data in SAMPLE_CATEGORIES.items():

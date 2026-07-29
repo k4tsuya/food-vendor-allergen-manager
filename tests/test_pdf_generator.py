@@ -17,5 +17,3 @@ def test_download_pdf_endpoint_rejects_invalid_language(client):
     response = client.get("/items/pdf?language=fr")
 
     assert response.status_code == 422
-    
-    

@@ -48,7 +48,8 @@ def decode_access_token(token: str) -> str | None:
         return payload.get("sub")
     except JWTError:
         return None
-    
+
+
 def get_current_admin(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),

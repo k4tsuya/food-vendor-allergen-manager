@@ -48,7 +48,7 @@ def test_list_items_respects_limit_and_offset(db_session):
     result = list_items(db_session, limit=2, offset=1)
 
     assert len(result) == 2
-    
+
 
 from src.product_management.models import MeatType
 

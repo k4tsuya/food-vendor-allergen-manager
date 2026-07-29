@@ -1,4 +1,3 @@
-
 def test_create_meat_type_requires_auth(client):
     response = client.post(
         "/meat-types",

@@ -4,9 +4,16 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from src.product_management.models import Item, Allergen, MeatType, Category, item_meat_type, item_allergen
-from src.product_management.schemas import ExportData
+from src.product_management.models import (
+    Allergen,
+    Category,
+    Item,
+    MeatType,
+    item_allergen,
+    item_meat_type,
+)
 from src.product_management.queries.settings import get_settings
+from src.product_management.schemas import ExportData
 
 
 def export_all_data(db: Session) -> dict:
@@ -55,13 +62,19 @@ def import_all_data(db: Session, data: "ExportData") -> None:
     db.commit()
 
     for a in data.allergens:
-        db.add(Allergen(code=a.code, description_en=a.description_en, description_nl=a.description_nl))
+        db.add(
+            Allergen(code=a.code, description_en=a.description_en, description_nl=a.description_nl)
+        )
 
     for m in data.meat_types:
-        db.add(MeatType(code=m.code, description_en=m.description_en, description_nl=m.description_nl))
+        db.add(
+            MeatType(code=m.code, description_en=m.description_en, description_nl=m.description_nl)
+        )
 
     for c in data.categories:
-        db.add(Category(code=c.code, description_en=c.description_en, description_nl=c.description_nl))
+        db.add(
+            Category(code=c.code, description_en=c.description_en, description_nl=c.description_nl)
+        )
 
     db.commit()
 

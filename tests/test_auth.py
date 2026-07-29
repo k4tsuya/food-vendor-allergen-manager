@@ -62,7 +62,7 @@ def test_protected_route_rejects_garbage_token(client):
     response = client.get("/auth/me", headers={"Authorization": "Bearer not.a.real.token"})
 
     assert response.status_code == 401
-    
+
 
 def test_login_rate_limits_after_five_attempts(client, db_session):
     db_session.add(Admin(username="testadmin", hashed_password=hash_password("testpass123")))
@@ -80,7 +80,8 @@ def test_login_rate_limits_after_five_attempts(client, db_session):
         json={"username": "testadmin", "password": "wrong"},
     )
     assert sixth_response.status_code == 429
-    
+
+
 def test_change_password_requires_auth(client):
     response = client.put(
         "/auth/password",
