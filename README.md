@@ -172,6 +172,9 @@ frontend/src/
 ├── api.js                         # Shared authenticated-fetch helper for admin requests
 ├── App.jsx                          # Assembles layout and defines routes (including nested admin routes)
 └── main.jsx                           # App entry point, wraps App in BrowserRouter + providers
+
+frontend/public/
+└── robots.txt   # Disallows all crawlers from indexing any page (site isn't meant to be publicly searchable)
 ```
 
 ---
@@ -335,6 +338,8 @@ http://localhost:8000/docs
 ```
 
 Note this is the **backend** port (`8000`) — the frontend dev server (`5173`, started below) doesn't have this route.
+
+Endpoints are grouped into labeled sections (Items, Allergens, Meat Types, Categories, Authentication, Settings, Backup & Restore, Health) via OpenAPI tags, rather than one flat list.
 
 ### 2. Frontend setup
 

@@ -85,11 +85,11 @@ app.add_middleware(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore
 
-app.include_router(items.router)
-app.include_router(allergens.router)
-app.include_router(health.router)
-app.include_router(config.router)
-app.include_router(meat_types.router)
-app.include_router(auth.router)
-app.include_router(categories.router)
-app.include_router(data.router)
+app.include_router(items.router, tags=["Items"])
+app.include_router(categories.router, tags=["Categories"])
+app.include_router(allergens.router, tags=["Allergens"])
+app.include_router(meat_types.router, tags=["Meat Types"])
+app.include_router(health.router, tags=["Health"])
+app.include_router(auth.router, tags=["Authentication"])
+app.include_router(config.router, tags=["Settings"])
+app.include_router(data.router, tags=["Backup &Restore"])
