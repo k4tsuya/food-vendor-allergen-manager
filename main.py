@@ -81,7 +81,9 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 
-trusted_hosts = [host.strip() for host in os.getenv("TRUSTED_HOSTS", "localhost,127.0.0.1,testserver").split(",")]
+trusted_hosts = [
+    host.strip() for host in os.getenv("TRUSTED_HOSTS", "localhost,127.0.0.1,testserver").split(",")
+]
 
 app.add_middleware(
     CORSMiddleware,
