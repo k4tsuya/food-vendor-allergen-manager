@@ -1,6 +1,7 @@
 """Main module for the product management app."""
 
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -9,6 +10,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from src.product_management.core.database import SessionLocal, engine
 from src.product_management.core.logging_config import configure_logging
@@ -79,12 +81,20 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 
+trusted_hosts = [host.strip() for host in os.getenv("TRUSTED_HOSTS", "localhost,127.0.0.1,testserver").split(",")]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=trusted_hosts,
+)
+
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore

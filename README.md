@@ -263,6 +263,7 @@ DATABASE_URL=sqlite:///product_management.db
 SECRET_KEY=your-secret-key-here
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=your-password-here
+TRUSTED_HOSTS=localhost,127.0.0.1
 ```
 
 Generate a real `SECRET_KEY` (used to sign JWTs) rather than leaving the placeholder:
@@ -271,6 +272,8 @@ python3 -c "import secrets; print(secrets.token_hex(32))"
 ```
 
 By default, the project runs against a local SQLite file — no separate database server required. `DATABASE_URL` can be changed to point at a hosted PostgreSQL database instead for a more production-style setup; both are supported through the same variable, since SQLAlchemy abstracts over the underlying database engine.
+
+`TRUSTED_HOSTS` controls which hostnames the API will accept requests for (see **Backend Security Notes** below) — expand this to your real domain once deployed.
 
 `.env` is gitignored. `.env.example` is committed as a template with placeholder values only.
 
@@ -438,6 +441,8 @@ A few small, deliberate additions, plus known tradeoffs worth documenting honest
 * `X-Content-Type-Options: nosniff` — prevents the browser from guessing a file's type differently than declared
 * `X-Frame-Options: DENY` — prevents the site being loaded inside an `<iframe>` on another page (clickjacking protection)
 * `Referrer-Policy: same-origin` — avoids leaking referrer URLs to external destinations
+
+**Host header validation** — `TrustedHostMiddleware` checks every incoming request's `Host` header against an allow-list before it reaches any route, rejecting requests with a spoofed or unexpected host. The allowed list is read from `TRUSTED_HOSTS` in `.env` (comma-separated), so it can differ per deployment without a code change — locally this defaults to `localhost,127.0.0.1`.
 
 `Content-Security-Policy` and `Strict-Transport-Security` were deliberately left out for now — CSP needs careful tuning to avoid breaking the app's own scripts/styles, and HSTS only makes sense once this is served over HTTPS rather than local `http://localhost`. Both are worth adding at actual deployment time.
 
