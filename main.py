@@ -54,7 +54,9 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Item Allergens API", lifespan=lifespan)
+app = FastAPI(title="Item Allergens API",
+              lifespan=lifespan,
+              swagger_ui_parameters={"defaultModelsExpandDepth": 0})
 
 
 app.mount("/static", StaticFiles(directory="src/product_management/static"), name="static")
