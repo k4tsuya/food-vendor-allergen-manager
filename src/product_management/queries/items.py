@@ -10,7 +10,7 @@ authenticated admin endpoints.
 from sqlalchemy.orm import Session, selectinload
 
 from src.product_management.models import Allergen, Item, MeatType
-from src.product_management.schemas import ItemAllergenView, ItemCreate, ItemUpdate
+from src.product_management.schemas import ItemAllergenView, ItemCreate, ItemResponse, ItemUpdate
 
 
 def list_items(
@@ -21,7 +21,7 @@ def list_items(
     exclude_allergens: list[str] | None = None,
     meat_types: list[str] | None = None,
     categories: list[str] | None = None,
-) -> list[Item]:
+) -> list[ItemResponse]:
     """Filters are combined with AND logic across categories (search AND
     exclude_allergens AND meat_types AND categories), but within a single
     filter, matching is OR-based — e.g. meat_types=["pork","beef"] returns
@@ -64,12 +64,17 @@ def list_items(
     if categories:
         query = query.filter(Item.category_key.in_(categories))
 
-    return (
-        query.order_by(Item.category_key.asc().nulls_last(), Item.name.asc())
+    items = (
+        query.order_by(
+            Item.category_key.asc().nulls_last(),
+            Item.name.asc(),
+        )
         .limit(limit)
         .offset(offset)
         .all()
     )
+
+    return [ItemResponse.model_validate(item) for item in items]
 
 
 def pdf_list_items(db: Session) -> list[ItemAllergenView]:

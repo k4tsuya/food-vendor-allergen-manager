@@ -41,7 +41,11 @@ SAMPLE_CATEGORIES = {
 
 
 def load_allergens(db: Session) -> None:
-    """Insert allergens into the db if they don't exist."""
+    """Insert allergens into the database if they do not already exist.
+
+    Args:
+        db (Session): The database session to use for the insertion.
+    """
     for code, data in ALLERGENS.items():
         en = data["en"]
         nl = data["nl"]
@@ -60,7 +64,11 @@ def load_allergens(db: Session) -> None:
 
 
 def load_meat_types(db: Session) -> None:
-    """Insert meat types into the db if they don't exist."""
+    """Insert meat types into the database if they do not already exist.
+
+    Args:
+        db (Session): The database session to use for the insertion.
+    """
     for code, data in MEAT_TYPES.items():
         en = data["en"]
         nl = data["nl"]
@@ -79,8 +87,11 @@ def load_meat_types(db: Session) -> None:
 
 
 def load_items(db: Session) -> None:
-    """Insert items into the db with the corresponding allergens."""
+    """Insert items into the database with the corresponding allergens.
 
+    Args:
+        db (Session): The database session to use for the insertion.
+    """
     settings = get_settings(db)
 
     data_source: dict = SAMPLE_ITEMS
@@ -128,12 +139,16 @@ def load_items(db: Session) -> None:
 
 
 def load_admin(db: Session) -> None:
-    """Create the initial admin account from .env, if it doesn't already exist."""
+    """Create the initial admin account from .env, if it doesn't already exist.
+
+    Args:
+        db (Session): The database session to use for the insertion.
+    """
     username = os.getenv("ADMIN_USERNAME")
     password = os.getenv("ADMIN_PASSWORD")
 
     if not username or not password:
-        print("ADMIN_USERNAME/ADMIN_PASSWORD not set in .env — skipping admin seeding.")
+        logger.info("ADMIN_USERNAME/ADMIN_PASSWORD not set in .env — skipping admin seeding.")
         return
 
     if db.query(Admin).filter_by(username=username).first():
@@ -144,7 +159,11 @@ def load_admin(db: Session) -> None:
 
 
 def load_categories(db: Session) -> None:
-    """Insert categories into the db if they don't exist."""
+    """Insert categories into the database if they do not already exist.
+
+    Args:
+        db (Session): The database session to use for the insertion.
+    """
     for code, data in SAMPLE_CATEGORIES.items():
         if db.query(Category).filter_by(code=code).first():
             continue
