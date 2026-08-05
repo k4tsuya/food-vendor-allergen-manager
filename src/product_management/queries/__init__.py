@@ -1,8 +1,11 @@
-"""Queries package.
+"""Queries package — database access layer, split by resource.
 
-Split into one module per resource. Everything is re-exported here so
-existing code doing `from src.product_management.queries import X`
-keeps working without changes.
+Each module handles one resource (items, allergens, meat_types,
+categories, settings, data_transfer). This __init__.py re-exports every
+public function so existing code doing
+`from src.product_management.queries import list_items, create_item, ...`
+keeps working unchanged, regardless of which specific module a function
+actually lives in.
 """
 
 from src.product_management.queries.allergens import (
@@ -45,7 +48,6 @@ from src.product_management.queries.settings import (
 
 __all__ = [
     "list_items",
-    "get_gluten_free_items",
     "pdf_list_items",
     "get_item",
     "create_item",
