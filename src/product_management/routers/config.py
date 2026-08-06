@@ -130,7 +130,7 @@ def upload_logo(
     db.refresh(settings)
 
     log_admin_action(current_admin, "uploaded", "logo", filename)
-    return settings
+    return SettingsResponse.model_validate(settings)
 
 
 @router.delete("/config/logo", response_model=SettingsResponse)
@@ -160,7 +160,7 @@ def delete_logo(
         db.refresh(settings)
 
     log_admin_action(current_admin, "removed", "logo", "n/a")
-    return settings
+    return SettingsResponse.model_validate(settings)
 
 
 def validate_file_content(extension: str, contents: bytes) -> None:

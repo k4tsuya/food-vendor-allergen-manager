@@ -20,6 +20,12 @@ def get_settings(db: Session) -> AppSettings:
     Always returns a real row — callers never need to handle a None case
     the way they do for get_item/get_allergen/etc., since "settings don't
     exist yet" isn't a valid state for this app to be in.
+
+    Args:
+        db: Active database session.
+
+    Returns:
+        The app's AppSettings row, creating a default one first if none exists.
     """
     settings = db.query(AppSettings).first()
     if settings is None:
@@ -41,6 +47,13 @@ def update_settings(db: Session, data: "SettingsUpdate") -> AppSettings:
 
     Always a full replacement (matches how the admin settings form
     submits every field together, not a partial update).
+
+    Args:
+        db: Active database session.
+        data: New values for every settings field.
+
+    Returns:
+        The updated AppSettings row.
     """
     settings = get_settings(db)
     settings.meat_tracking_enabled = data.meat_tracking_enabled
