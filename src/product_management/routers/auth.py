@@ -17,7 +17,7 @@ from src.product_management.core.security import (
 from src.product_management.models import Admin
 from src.product_management.schemas import LoginRequest, PasswordChangeRequest, TokenResponse
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("security")
 
 router = APIRouter()
 
