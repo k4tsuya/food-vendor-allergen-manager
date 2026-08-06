@@ -12,7 +12,7 @@ restoring a vendor's product data should never change who can log in.
 
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from src.product_management.models import (
     Allergen,
@@ -27,7 +27,9 @@ from src.product_management.schemas import ExportData
 
 
 def export_all_data(db: Session) -> dict:
-    """Returns a plain dict (not a Pydantic model instance) because this is
+    """Export all business data as a plain dict matching the ExportData shape.
+
+    Returns a plain dict (not a Pydantic model instance) because this is
     handed directly to FastAPI's response_model=ExportData for validation
     and serialization — building the dict here keeps this function
     testable/usable independent of the HTTP layer.
@@ -39,6 +41,11 @@ def export_all_data(db: Session) -> dict:
         A dict matching the ExportData schema shape: exported_at,
         allergens, meat_types, categories, items, and settings.
     """
+    items = (
+        db.query(Item).options(selectinload(Item.allergens), selectinload(Item.meat_types)).all()
+    )
+    settings = get_settings(db)
+
     return {
         "exported_at": datetime.now(timezone.utc).isoformat(),
         "allergens": [
@@ -60,14 +67,14 @@ def export_all_data(db: Session) -> dict:
                 "allergen_codes": [a.code for a in i.allergens],
                 "meat_type_codes": [m.code for m in i.meat_types],
             }
-            for i in db.query(Item).all()
+            for i in items
         ],
         "settings": {
-            "meat_tracking_enabled": get_settings(db).meat_tracking_enabled,
-            "company_name": get_settings(db).company_name,
-            "site_title_en": get_settings(db).site_title_en,
-            "site_title_nl": get_settings(db).site_title_nl,
-            "default_language": get_settings(db).default_language,
+            "meat_tracking_enabled": settings.meat_tracking_enabled,
+            "company_name": settings.company_name,
+            "site_title_en": settings.site_title_en,
+            "site_title_nl": settings.site_title_nl,
+            "default_language": settings.default_language,
         },
     }
 

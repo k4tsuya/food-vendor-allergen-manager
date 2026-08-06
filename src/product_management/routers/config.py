@@ -35,7 +35,8 @@ def get_config(db: Session = Depends(get_db)) -> SettingsResponse:
     Returns:
         SettingsResponse: The current application settings.
     """
-    return get_settings(db)
+    settings = get_settings(db)
+    return SettingsResponse.model_validate(settings)
 
 
 @router.put("/config", response_model=SettingsResponse)
@@ -54,7 +55,8 @@ def update_config(
     Returns:
         SettingsResponse: The updated settings response.
     """
-    return update_settings(db, data)
+    updated_settings = update_settings(db, data)
+    return SettingsResponse.model_validate(updated_settings)
 
 
 LOGO_DIR = Path("src/product_management/static/logos")

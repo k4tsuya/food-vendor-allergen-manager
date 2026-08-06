@@ -27,7 +27,8 @@ def export_data(
     Returns:
         ExportData: A dictionary containing all exported business data.
     """
-    return export_all_data(db)
+    data = export_all_data(db)
+    return ExportData.model_validate(data)
 
 
 @router.post("/data/import")
