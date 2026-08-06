@@ -97,6 +97,7 @@ function AllergensPage() {
 
   return (
     <div className="app">
+      <p className="allergen-disclaimer">{t.disclaimer}</p>
       <FilterBar
         search={search}
         onSearchChange={handleSearchChange}

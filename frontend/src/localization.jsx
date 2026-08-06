@@ -5,11 +5,13 @@ const translations = {
     pageTitle: 'Product Allergieën',
     loading: 'Producten laden...',
     noAllergens: 'Geen bekende allergenen',
+    disclaimer: 'Deze informatie is bedoeld als hulpmiddel. Controleer altijd bij het personeel voordat u iets bestelt met een allergie of intolerantie.',
   },
   en: {
     pageTitle: 'Product Allergies',
     loading: 'Loading products...',
     noAllergens: 'No known allergens',
+    disclaimer: 'This information is a guide only. Always confirm with staff before ordering if you have an allergy or intolerance.',
   },
 };
 
