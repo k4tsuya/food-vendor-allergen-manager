@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class AllergenResponse(BaseModel):
@@ -39,8 +39,8 @@ class ItemAllergenView(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    username: str
-    password: str
+    username: str = Field(max_length=100)
+    password: str = Field(max_length=100)
 
 
 class TokenResponse(BaseModel):
@@ -49,15 +49,15 @@ class TokenResponse(BaseModel):
 
 
 class ItemCreate(BaseModel):
-    name: str
-    category_key: str | None = None
+    name: str = Field(max_length=200)
+    category_key: str | None = Field(default=None, max_length=50)
     allergen_codes: list[str] = []
     meat_type_codes: list[str] = []
 
 
 class ItemUpdate(BaseModel):
-    name: str
-    category_key: str | None = None
+    name: str = Field(max_length=200)
+    category_key: str | None = Field(default=None, max_length=50)
     allergen_codes: list[str] = []
     meat_type_codes: list[str] = []
 
@@ -68,25 +68,25 @@ class ItemWriteResponse(BaseModel):
 
 
 class AllergenCreate(BaseModel):
-    code: str
-    description_en: str
-    description_nl: str
+    code: str = Field(max_length=50)
+    description_en: str = Field(max_length=200)
+    description_nl: str = Field(max_length=200)
 
 
 class AllergenUpdate(BaseModel):
-    description_en: str
-    description_nl: str
+    description_en: str = Field(max_length=200)
+    description_nl: str = Field(max_length=200)
 
 
 class MeatTypeCreate(BaseModel):
-    code: str
-    description_en: str
-    description_nl: str
+    code: str = Field(max_length=50)
+    description_en: str = Field(max_length=200)
+    description_nl: str = Field(max_length=200)
 
 
 class MeatTypeUpdate(BaseModel):
-    description_en: str
-    description_nl: str
+    description_en: str = Field(max_length=200)
+    description_nl: str = Field(max_length=200)
 
 
 class CategoryResponse(BaseModel):
@@ -99,14 +99,14 @@ class CategoryResponse(BaseModel):
 
 
 class CategoryCreate(BaseModel):
-    code: str
-    description_en: str
-    description_nl: str
+    code: str = Field(max_length=50)
+    description_en: str = Field(max_length=200)
+    description_nl: str = Field(max_length=200)
 
 
 class CategoryUpdate(BaseModel):
-    description_en: str
-    description_nl: str
+    description_en: str = Field(max_length=200)
+    description_nl: str = Field(max_length=200)
 
 
 class SettingsResponse(BaseModel):
@@ -121,15 +121,15 @@ class SettingsResponse(BaseModel):
 
 class SettingsUpdate(BaseModel):
     meat_tracking_enabled: bool
-    company_name: str
-    site_title_en: str
-    site_title_nl: str
+    company_name: str = Field(max_length=200)
+    site_title_en: str = Field(max_length=200)
+    site_title_nl: str = Field(max_length=200)
     default_language: Literal["nl", "en"]
 
 
 class PasswordChangeRequest(BaseModel):
-    current_password: str
-    new_password: str
+    current_password: str = Field(max_length=100)
+    new_password: str = Field(max_length=100)
 
 
 class ExportData(BaseModel):
