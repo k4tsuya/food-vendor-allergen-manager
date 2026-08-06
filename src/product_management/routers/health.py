@@ -10,8 +10,17 @@ router = APIRouter()
 
 
 @router.get("/health")
-def health_check(db: Session = Depends(get_db)):
-    """Report whether the API and database are reachable."""
+def health_check(db: Session = Depends(get_db)) -> dict[str, str]:
+    """Report whether the API and database are reachable.
+
+    Args:
+        db: Database session.
+
+    Returns:
+        A dictionary with the API and database status.
+        - status: Always returns "ok".
+        - database: "ok" if the database is reachable, otherwise "unreachable".
+    """
     try:
         db.execute(text("SELECT 1"))
         db_status = "ok"
