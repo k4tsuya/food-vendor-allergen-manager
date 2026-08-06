@@ -19,8 +19,16 @@ router = APIRouter()
 
 
 @router.get("/categories", response_model=list[CategoryResponse])
-def list_all_categories(db: Session = Depends(get_db)):
-    """Return all categories."""
+def list_all_categories(db: Session = Depends(get_db)) -> list[CategoryResponse]:
+    """
+    Retrieve and return all categories from the database.
+
+    Args:
+        db: Database session to interact with the database.
+
+    Returns:
+        List of CategoryResponse objects representing all categories.
+    """
     return list_categories(db)
 
 
@@ -29,8 +37,20 @@ def create_new_category(
     data: CategoryCreate,
     current_admin: Admin = Depends(get_current_admin),
     db: Session = Depends(get_db),
-):
-    """Create a new category. Requires authentication."""
+) -> CategoryResponse:
+    """Create a new category. Requires authentication.
+
+    Args:
+        data: The data required to create a new category.
+        current_admin: The authenticated admin user.
+        db: The database session.
+
+    Returns:
+        Category: The newly created category.
+
+    Raises:
+        HTTPException: If a category with the same code already exists.
+    """
     category = create_category(db, data)
     if category is None:
         raise HTTPException(
@@ -48,8 +68,21 @@ def update_existing_category(
     data: CategoryUpdate,
     current_admin: Admin = Depends(get_current_admin),
     db: Session = Depends(get_db),
-):
-    """Update an existing category's descriptions. Requires authentication."""
+) -> CategoryResponse:
+    """Update an existing category's descriptions. Requires authentication.
+
+    Args:
+        category_id: ID of the category to update.
+        data: Data containing the new category information.
+        current_admin: The admin performing the update.
+        db: Database session.
+
+    Returns:
+        CategoryResponse: Updated category details.
+
+    Raises:
+        HTTPException: If the category is not found.
+    """
     category = update_category(db, category_id, data)
     if category is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
@@ -63,8 +96,17 @@ def delete_existing_category(
     category_id: int,
     current_admin: Admin = Depends(get_current_admin),
     db: Session = Depends(get_db),
-):
-    """Delete a category. Requires authentication."""
+) -> None:
+    """Delete a category. Requires authentication.
+
+    Args:
+        category_id: The ID of the category to delete.
+        current_admin: The authenticated admin user.
+        db: The database session.
+
+    Raises:
+        HTTPException: If the category is not found.
+    """
     deleted = delete_category(db, category_id)
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")

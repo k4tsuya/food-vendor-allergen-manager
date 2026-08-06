@@ -17,8 +17,16 @@ router = APIRouter()
 def export_data(
     current_admin: Admin = Depends(get_current_admin),
     db: Session = Depends(get_db),
-):
-    """Export all business data (items, allergens, meat types, categories, settings) as JSON."""
+) -> ExportData:
+    """Export all business data (items, allergens, meat types, categories, settings) as JSON.
+
+    Args:
+        current_admin (Admin): The current logged-in admin user.
+        db (Session): The database session.
+
+    Returns:
+        ExportData: A dictionary containing all exported business data.
+    """
     return export_all_data(db)
 
 
@@ -29,8 +37,18 @@ def import_data(
     data: ExportData,
     current_admin: Admin = Depends(get_current_admin),
     db: Session = Depends(get_db),
-):
-    """Replace all business data with the contents of an imported JSON file."""
+) -> dict[str, str]:
+    """Replace all business data with the contents of an imported JSON file.
+
+    Args:
+        request: The incoming request object.
+        data: The imported data to replace existing business data.
+        current_admin: The admin user performing the import action.
+        db: The database session for transactional operations.
+
+    Returns:
+        A dictionary with a single key 'detail' indicating the success of the import operation.
+    """
     import_all_data(db, data)
     log_admin_action(current_admin, "imported", "full_dataset", "n/a")
     return {"detail": "Data imported successfully"}

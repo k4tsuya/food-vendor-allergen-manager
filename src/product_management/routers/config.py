@@ -26,8 +26,15 @@ MAGIC_NUMBERS = {
 
 
 @router.get("/config", response_model=SettingsResponse)
-def get_config(db: Session = Depends(get_db)):
-    """Return current app settings. Public — the frontend needs this without logging in."""
+def get_config(db: Session = Depends(get_db)) -> SettingsResponse:
+    """Return current app settings. Public — the frontend needs this without logging in.
+
+    Args:
+        db (Session): Database session.
+
+    Returns:
+        SettingsResponse: The current application settings.
+    """
     return get_settings(db)
 
 
@@ -36,8 +43,17 @@ def update_config(
     data: SettingsUpdate,
     current_admin: Admin = Depends(get_current_admin),
     db: Session = Depends(get_db),
-):
-    """Update app settings. Requires authentication."""
+) -> SettingsResponse:
+    """Update app settings. Requires authentication.
+
+    Args:
+        data: The settings data to update.
+        current_admin: The current authenticated admin user.
+        db: The database session.
+
+    Returns:
+        SettingsResponse: The updated settings response.
+    """
     return update_settings(db, data)
 
 
@@ -51,8 +67,21 @@ def upload_logo(
     file: UploadFile = File(...),
     current_admin: Admin = Depends(get_current_admin),
     db: Session = Depends(get_db),
-):
-    """Upload a vendor logo, replacing any existing one."""
+) -> SettingsResponse:
+    """Upload a vendor logo, replacing any existing one.
+
+    Args:
+        file: The uploaded file containing the vendor logo.
+        current_admin: The current admin user performing the action.
+        db: The database session.
+
+    Returns:
+        SettingsResponse: The updated settings with the new logo path.
+
+    Raises:
+        HTTPException: If no filename is provided, if the file type is unsupported,
+            or if the file size exceeds the maximum allowed size.
+    """
 
     if not file.filename:
         raise HTTPException(
@@ -106,8 +135,19 @@ def upload_logo(
 def delete_logo(
     current_admin: Admin = Depends(get_current_admin),
     db: Session = Depends(get_db),
-):
-    """Remove the current vendor logo, if any."""
+) -> SettingsResponse:
+    """Remove the current vendor logo, if any.
+
+    Args:
+        current_admin: The current logged-in admin.
+        db: Database session.
+
+    Returns:
+        SettingsResponse: The updated settings after removing the logo.
+
+    Raises:
+        HTTPException: If the admin does not have permission to perform the action.
+    """
     settings = get_settings(db)
     if settings.logo_path:
         old_file = LOGO_DIR / settings.logo_path
@@ -122,7 +162,12 @@ def delete_logo(
 
 
 def validate_file_content(extension: str, contents: bytes) -> None:
-    """Verify the file's actual content matches its claimed extension."""
+    """Verify that the file's actual content matches its claimed extension.
+
+    Args:
+        extension (str): The file extension to validate against.
+        contents (bytes): The raw bytes of the file content to validate.
+    """
     if extension in MAGIC_NUMBERS:
         signature = MAGIC_NUMBERS[extension]
         if not contents.startswith(signature):

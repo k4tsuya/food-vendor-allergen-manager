@@ -24,8 +24,22 @@ router = APIRouter()
 
 @router.post("/auth/login", response_model=TokenResponse)
 @limiter.limit("5/minute")
-def login(request: Request, credentials: LoginRequest, db: Session = Depends(get_db)):
-    """Authenticate an admin and return a JWT access token."""
+def login(
+    request: Request, credentials: LoginRequest, db: Session = Depends(get_db)
+) -> TokenResponse:
+    """Authenticate an admin and return a JWT access token.
+
+    Args:
+        request: The incoming request object containing client information.
+        credentials: An object containing the username and password for authentication.
+        db: A database session for querying the admin data.
+
+    Returns:
+        TokenResponse: A response object containing the access token.
+
+    Raises:
+        HTTPException: If the username or password is incorrect, raising a 401 Unauthorized status.
+    """
     admin = db.query(Admin).filter_by(username=credentials.username).first()
 
     client_host = request.client.host if request.client else "unknown"
@@ -47,8 +61,15 @@ def login(request: Request, credentials: LoginRequest, db: Session = Depends(get
 
 
 @router.get("/auth/me")
-def get_me(current_admin: Admin = Depends(get_current_admin)):
-    """Return the currently authenticated admin's username. Used to verify a token is valid."""
+def get_me(current_admin: Admin = Depends(get_current_admin)) -> dict[str, str]:
+    """Return the currently authenticated admin's username. Used to verify a token is valid.
+
+    Args:
+        current_admin: The currently authenticated admin instance.
+
+    Returns:
+        dict[str, str]: A dictionary containing the username of the authenticated admin.
+    """
     return {"username": current_admin.username}
 
 
@@ -59,9 +80,21 @@ def change_password(
     data: PasswordChangeRequest,
     current_admin: Admin = Depends(get_current_admin),
     db: Session = Depends(get_db),
-):
-    """Change the current admin's password. Requires the current password to be correct."""
+) -> dict[str, str]:
+    """Change the current admin's password. Requires the current password to be correct.
 
+    Args:
+        request: The incoming HTTP request object.
+        data: The request data containing the current and new passwords.
+        current_admin: The currently authenticated admin user.
+        db: The database session to interact with.
+
+    Returns:
+        dict[str, str]: A dictionary with a single key 'detail' indicating the success message.
+
+    Raises:
+        HTTPException: If the current password is incorrect.
+    """
     client_host = request.client.host if request.client else "unknown"
 
     if not verify_password(data.current_password, current_admin.hashed_password):
