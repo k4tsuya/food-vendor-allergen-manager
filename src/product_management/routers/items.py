@@ -128,7 +128,7 @@ def create_new_item(
     """
     item, warnings = create_item(db, data)
     log_admin_action(current_admin, "created", "item", item.id)
-    return ItemWriteResponse(item=item, warnings=warnings)  # type: ignore[arg-type]
+    return ItemWriteResponse(item=ItemResponse.model_validate(item), warnings=warnings)
 
 
 @router.put("/items/{item_id}", response_model=ItemWriteResponse)
@@ -166,7 +166,7 @@ def update_existing_item(
 
     item, warnings = result
     log_admin_action(current_admin, "updated", "item", item.id)
-    return ItemWriteResponse(item=item, warnings=warnings)  # type: ignore[arg-type]
+    return ItemWriteResponse(item=ItemResponse.model_validate(item), warnings=warnings)
 
 
 @router.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
