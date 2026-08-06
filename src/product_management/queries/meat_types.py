@@ -14,7 +14,9 @@ from src.product_management.schemas import MeatTypeCreate, MeatTypeUpdate
 
 
 def list_meat_types(db: Session) -> list[MeatType]:
-    """Sorted for the same reason as list_allergens: a predictable order
+    """Retrieve all meat types, sorted by English description.
+
+    Sorted for the same reason as list_allergens: a predictable order
     for both the matrix's meat-type columns and the admin table.
 
     Args:
@@ -38,7 +40,9 @@ def get_meat_type(db: Session, meat_type_id: int) -> MeatType | None:
 
 
 def create_meat_type(db: Session, data: "MeatTypeCreate") -> MeatType | None:
-    """`code` has a unique constraint at the database level, so this checks
+    """Create a new meat type, or None if the code already exists.
+
+    `code` has a unique constraint at the database level, so this checks
     for an existing match first and returns None rather than letting the
     insert fail with a raw IntegrityError — the router turns that None
     into a clean 400 response instead of a 500.
@@ -70,7 +74,9 @@ def create_meat_type(db: Session, data: "MeatTypeCreate") -> MeatType | None:
 
 
 def update_meat_type(db: Session, meat_type_id: int, data: "MeatTypeUpdate") -> MeatType | None:
-    """`code` is intentionally not updatable here (see the MeatTypeUpdate
+    """Update a meat type's descriptions, or None if it doesn't exist.
+
+    `code` is intentionally not updatable here (see the MeatTypeUpdate
     schema — it has no code field). Code is used as a stable identifier
     for filtering (?meat_types=pork) and for looking up the matching
     icon file (static/icons/meat/pork.png); changing it after creation
@@ -97,7 +103,9 @@ def update_meat_type(db: Session, meat_type_id: int, data: "MeatTypeUpdate") -> 
 
 
 def delete_meat_type(db: Session, meat_type_id: int) -> bool:
-    """Deleting this removes the corresponding rows from the item_meat_type
+    """Delete a meat type, returning whether it existed.
+
+    Deleting this removes the corresponding rows from the item_meat_type
     association table automatically — SQLAlchemy cascades this for
     single-object deletes, unlike the bulk-delete case handled explicitly
     in queries/data_transfer.py's import_all_data.

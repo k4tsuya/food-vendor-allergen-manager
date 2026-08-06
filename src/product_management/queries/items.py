@@ -22,7 +22,9 @@ def list_items(
     meat_types: list[str] | None = None,
     categories: list[str] | None = None,
 ) -> list[ItemResponse]:
-    """Filters are combined with AND logic across categories (search AND
+    """Retrieve a filtered, paginated list of items.
+
+    Filters are combined with AND logic across categories (search AND
     exclude_allergens AND meat_types AND categories), but within a single
     filter, matching is OR-based — e.g. meat_types=["pork","beef"] returns
     items containing pork OR beef, not both.
@@ -78,7 +80,9 @@ def list_items(
 
 
 def pdf_list_items(db: Session) -> list[ItemAllergenView]:
-    """Deliberately calls list_items(db) with no filters/pagination arguments,
+    """Retrieve all items formatted for the PDF allergen overview.
+
+    Deliberately calls list_items(db) with no filters/pagination arguments,
     so the PDF always includes the full item list regardless of whatever
     filters happen to be active on the public matrix page at the time.
 
@@ -100,7 +104,9 @@ def pdf_list_items(db: Session) -> list[ItemAllergenView]:
 
 
 def get_item(db: Session, item_id: int) -> Item | None:
-    """Args:
+    """Retrieve a single item by ID, with allergens/meat types eager-loaded.
+
+    Args:
         db: Active database session.
         item_id: Primary key of the item to fetch.
 
@@ -117,7 +123,9 @@ def get_item(db: Session, item_id: int) -> Item | None:
 
 
 def _resolve_allergens(db: Session, codes: list[str]) -> tuple[list[Allergen], list[str]]:
-    """Exists to avoid an N+1 pattern: looking up each code with its own
+    """Look up Allergen rows matching the given codes in a single query.
+
+    Exists to avoid an N+1 pattern: looking up each code with its own
     db.query(...).filter_by(code=code).first() inside a loop would issue
     one query per code (e.g. 5 allergens = 5 queries). Instead, this fetches
     every matching row in one query using `IN (...)`, then does the
@@ -149,7 +157,9 @@ def _resolve_allergens(db: Session, codes: list[str]) -> tuple[list[Allergen], l
 
 
 def _resolve_meat_types(db: Session, codes: list[str]) -> tuple[list[MeatType], list[str]]:
-    """Same N+1-avoidance reasoning as _resolve_allergens — see that
+    """Look up MeatType rows matching the given codes in a single query.
+
+    Same N+1-avoidance reasoning as _resolve_allergens — see that
     function's docstring for the full explanation.
 
     Args:
@@ -178,7 +188,9 @@ def _resolve_meat_types(db: Session, codes: list[str]) -> tuple[list[MeatType], 
 
 
 def create_item(db: Session, data: "ItemCreate") -> tuple[Item, list[str]]:
-    """Unknown allergen/meat type codes are silently skipped rather than
+    """Create a new item and link it to allergens and meat types.
+
+    Unknown allergen/meat type codes are silently skipped rather than
     rejecting the whole request — a deliberate design choice: the admin
     UI only offers valid codes via checkboxes, so this path only matters
     for direct API access, where a typo'd code shouldn't block creating
@@ -208,7 +220,9 @@ def create_item(db: Session, data: "ItemCreate") -> tuple[Item, list[str]]:
 
 
 def update_item(db: Session, item_id: int, data: "ItemUpdate") -> tuple[Item, list[str]] | None:
-    """This is a full replacement, not a merge: whatever allergen/meat codes
+    """Replace an item's fields and full allergen/meat type set.
+
+    This is a full replacement, not a merge: whatever allergen/meat codes
     are submitted become the item's complete set, replacing whatever it
     had before (matching how the admin edit form works — it always
     submits the full current selection, not a diff).
@@ -229,7 +243,7 @@ def update_item(db: Session, item_id: int, data: "ItemUpdate") -> tuple[Item, li
         return None
 
     item.name = data.name
-    item.category_key = data.category_key  # type: ignore[assignment]
+    item.category_key = data.category_key
 
     allergens, allergen_warnings = _resolve_allergens(db, data.allergen_codes)
     meat_types, meat_warnings = _resolve_meat_types(db, data.meat_type_codes)
@@ -243,7 +257,9 @@ def update_item(db: Session, item_id: int, data: "ItemUpdate") -> tuple[Item, li
 
 
 def delete_item(db: Session, item_id: int) -> bool:
-    """Args:
+    """Delete an item by ID, returning whether it existed.
+
+    Args:
         db: Active database session.
         item_id: Primary key of the item to delete.
 

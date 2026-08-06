@@ -61,7 +61,7 @@ class Item(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
-    category_key: Mapped[str] = mapped_column(String(100), nullable=True)
+    category_key: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     allergens: Mapped[list[Allergen]] = relationship(
         secondary=item_allergen,
