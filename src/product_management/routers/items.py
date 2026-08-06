@@ -52,9 +52,6 @@ def list_all_items(
 
     Returns:
         list[ItemResponse]: A list of ItemResponse objects representing the filtered items.
-
-    Raises:
-        HTTPException: If an error occurs during the database query.
     """
     return list_items(
         db,
@@ -84,9 +81,6 @@ def download_items_pdf(
 
     Returns:
         FileResponse: A response object containing the generated PDF file.
-
-    Raises:
-        HTTPException: If there is an error during PDF generation or file handling.
     """
     items = pdf_list_items(db)
     file_path = OUTPUT_DIR / "item_allergens.pdf"
