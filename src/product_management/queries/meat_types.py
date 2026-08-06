@@ -7,6 +7,7 @@ description shape and CRUD pattern as allergens; the admin UI reuses the
 same component (CodeLabelAdmin) for both.
 """
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from src.product_management.models import MeatType
@@ -44,20 +45,21 @@ def create_meat_type(db: Session, data: "MeatTypeCreate") -> MeatType | None:
 
     `code` has a unique constraint at the database level, so this checks
     for an existing match first and returns None rather than letting the
-    insert fail with a raw IntegrityError — the router turns that None
-    into a clean 400 response instead of a 500.
+    insert fail with a raw IntegrityError. It also catches the rare race
+    condition where a duplicate code is inserted by another request
+    between this function's existence check and its own commit — the
+    database's unique constraint blocks that insert regardless; this
+    just makes sure the failure is handled cleanly instead of crashing.
+    The router turns None into a clean 400 response either way.
 
     Args:
         db: Active database session.
         data: The new meat type's code and English/Dutch descriptions.
 
     Returns:
-        The created MeatType, or None if the code already exists.
-
-    Raises:
-        sqlalchemy.exc.IntegrityError: In a rare race condition where a
-            different request inserts the same code between this
-            function's existence check and its own commit.
+        The created MeatType, or None if the code already exists
+        (whether caught by the initial check or the race-condition
+        fallback).
     """
     if db.query(MeatType).filter_by(code=data.code).first():
         return None
@@ -68,7 +70,12 @@ def create_meat_type(db: Session, data: "MeatTypeCreate") -> MeatType | None:
         description_nl=data.description_nl,
     )
     db.add(meat_type)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        return None
+
     db.refresh(meat_type)
     return meat_type
 
