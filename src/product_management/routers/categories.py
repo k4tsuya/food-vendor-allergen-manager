@@ -29,7 +29,9 @@ def list_all_categories(db: Session = Depends(get_db)) -> list[CategoryResponse]
     Returns:
         List of CategoryResponse objects representing all categories.
     """
-    return list_categories(db)
+
+    categories = list_categories(db)
+    return [CategoryResponse.model_validate(c) for c in categories]
 
 
 @router.post("/categories", response_model=CategoryResponse, status_code=status.HTTP_201_CREATED)
@@ -59,7 +61,7 @@ def create_new_category(
         )
 
     log_admin_action(current_admin, "created", "item", category.id)
-    return category
+    return CategoryResponse.model_validate(category)
 
 
 @router.put("/categories/{category_id}", response_model=CategoryResponse)
@@ -88,7 +90,7 @@ def update_existing_category(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
 
     log_admin_action(current_admin, "updated", "item", category.id)
-    return category
+    return CategoryResponse.model_validate(category)
 
 
 @router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
