@@ -118,7 +118,14 @@ src/product_management/
 │   └── health.py                    # /health route
 ├── models.py               # SQLAlchemy models (Item, Allergen, MeatType, Category, Admin, AppSettings)
 ├── schemas.py               # Pydantic schemas
-├── queries.py                # DB query functions
+├── queries/                  # DB query functions, split by resource
+│   ├── __init__.py             # Re-exports everything, so call sites don't need to change
+│   ├── items.py                  # Item CRUD, filtering/pagination, allergen/meat type resolution
+│   ├── allergens.py                # Allergen CRUD
+│   ├── meat_types.py                 # Meat type CRUD
+│   ├── categories.py                   # Category CRUD
+│   ├── settings.py                       # get_settings/update_settings
+│   └── data_transfer.py                    # export_all_data/import_all_data
 ├── seed/
 │   ├── insert_data.py         # Functions that insert data into the DB
 │   ├── items.py                 # Real item+allergen data (gitignored, see below)
@@ -419,6 +426,7 @@ Each admin sub-page shows a "← Back" link beside its own title, returning to `
 * Database migrations with Alembic, and why they matter once a project has real data to preserve
 * Building a reusable admin CRUD component shared across multiple resource types, instead of duplicating near-identical forms
 * Practicing fixing real bugs that a static type checker (mypy) surfaced — a duplicate class definition silently overriding another, two unrelated classes sharing a name, and an unguarded optional attribute — rather than just running the tool
+* Catching a subtler type-safety bug via mypy: routes whose declared return type was a Pydantic response schema, but whose code actually returned a raw SQLAlchemy ORM object — `response_model` made FastAPI serialize it correctly at runtime regardless, but the function's own type hint was still lying about what it returned. Fixed by converting explicitly (`Schema.model_validate(obj)`) rather than relying on `response_model` alone to paper over the mismatch.
 * Writing composable SQLAlchemy queries with multiple optional filters applied conditionally
 * Testing an authenticated API with pytest fixtures, including handling stateful complications like rate limiter state leaking between tests
 * Structured application logging: consistent formatting, appropriate severity levels, a separate audit-trail logger for admin actions, and logging full tracebacks server-side while returning generic error messages to clients
