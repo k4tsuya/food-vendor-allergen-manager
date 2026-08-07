@@ -1,6 +1,6 @@
 # Food Vendor Allergen Manager
 
-![Tests](https://github.com/k4tsuya/product_allergies_management/actions/workflows/tests.yml/badge.svg)
+![Tests](https://github.com/k4tsuya/food-vendor-allergen-manager/actions/workflows/tests.yml/badge.svg)
 
 ## 📌 Project Overview
 
