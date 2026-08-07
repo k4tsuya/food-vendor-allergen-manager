@@ -1,0 +1,29 @@
+# This is a configuration file for Dependabot. 
+# A tool that automatically checks for updates to dependencies in your project,
+# and creates pull requests to keep them up to date.
+
+version: 2
+updates:
+  # Backend — Python dependencies via requirements.txt
+  # open-pull-requests-limit: 0 disables routine version-bump PRs.
+  # Security-vulnerability PRs are NOT affected by this limit — they
+  # still get opened automatically regardless of this setting.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+
+  # Frontend — npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
+
+  # GitHub Actions workflow versions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 0
