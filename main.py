@@ -12,6 +12,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from src.product_management.core.backup import start_backup_scheduler
 from src.product_management.core.database import SessionLocal, engine
 from src.product_management.core.logging_config import configure_logging
 from src.product_management.core.security import limiter
@@ -42,6 +43,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Run startup seeding and start the backup scheduler; shut down cleanly on exit."""
     Base.metadata.create_all(bind=engine)
 
     with SessionLocal() as db:
@@ -53,7 +55,11 @@ async def lifespan(app: FastAPI):
         load_items(db)
         load_admin(db)
 
+    scheduler = start_backup_scheduler()
+
     yield
+
+    scheduler.shutdown()
 
 
 app = FastAPI(
