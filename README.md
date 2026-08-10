@@ -1,6 +1,6 @@
 # Food Vendor Allergen Manager
 
-![Tests](https://github.com/k4tsuya/food-vendor-allergen-manager/actions/workflows/tests.yml/badge.svg)
+![Tests](https://github.com/k4tsuya/product_allergies_management/actions/workflows/tests.yml/badge.svg)
 
 ## 📌 Project Overview
 
@@ -430,6 +430,7 @@ Each admin sub-page shows a "← Back" link beside its own title, returning to `
 * Writing composable SQLAlchemy queries with multiple optional filters applied conditionally
 * Testing an authenticated API with pytest fixtures, including handling stateful complications like rate limiter state leaking between tests
 * Structured application logging: consistent formatting, appropriate severity levels, a separate audit-trail logger for admin actions, and logging full tracebacks server-side while returning generic error messages to clients
+* Testing code that bypasses the normal dependency-injection path (a scheduled job calling `SessionLocal()` directly, rather than through the `get_db` FastAPI dependency) using pytest's built-in `monkeypatch` to temporarily swap out a module's `SessionLocal` and file-path constants for test-safe versions, plus `tmp_path` for an auto-cleaned temporary directory — conceptually similar to Django's `@mock.patch`/`override_settings`, but reverted automatically by pytest after each test
 
 ---
 
