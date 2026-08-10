@@ -13,6 +13,7 @@ logger = logging.getLogger("backup")
 BACKUP_DIR = Path("backups")
 RETENTION_DAYS = 14  # Number of days to keep backups.
 
+
 def run_scheduled_backup() -> None:
     """Export all business data to a timestamped JSON file.
 
@@ -68,4 +69,3 @@ def start_backup_scheduler() -> BackgroundScheduler:
     scheduler.start()
     logger.info("Backup scheduler started (daily at 03:00 UTC)")
     return scheduler
-
