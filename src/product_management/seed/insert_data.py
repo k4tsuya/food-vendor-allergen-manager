@@ -117,7 +117,6 @@ def load_items(db: Session) -> None:
         meat_data_source = item_meat
     except ImportError:
         logger.info("Real data not found. Loading sample data...")
-        pass
 
     for name, allergen_codes in data_source.items():
         if db.query(Item).filter_by(name=name).first():
@@ -139,7 +138,11 @@ def load_items(db: Session) -> None:
 
 
 def load_admin(db: Session) -> None:
-    """Create the initial admin account from .env, if it doesn't already exist.
+    """Create the initial owner account from .env, if it doesn't already exist.
+
+    Seeded with role="owner" specifically — this is the one account with
+    full access (settings, managing other admin accounts), distinct from
+    manager accounts created later through the admin area.
 
     Args:
         db (Session): The database session to use for the insertion.
@@ -154,7 +157,7 @@ def load_admin(db: Session) -> None:
     if db.query(Admin).filter_by(username=username).first():
         return
 
-    db.add(Admin(username=username, hashed_password=hash_password(password)))
+    db.add(Admin(username=username, hashed_password=hash_password(password), role="owner"))
     db.commit()
 
 

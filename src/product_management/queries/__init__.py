@@ -8,6 +8,11 @@ keeps working unchanged, regardless of which specific module a function
 actually lives in.
 """
 
+from src.product_management.queries.admins import (
+    create_admin,
+    delete_admin,
+    list_admins,
+)
 from src.product_management.queries.allergens import (
     create_allergen,
     delete_allergen,
@@ -72,4 +77,7 @@ __all__ = [
     "update_settings",
     "export_all_data",
     "import_all_data",
+    "list_admins",
+    "create_admin",
+    "delete_admin",
 ]

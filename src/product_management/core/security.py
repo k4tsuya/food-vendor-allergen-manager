@@ -138,3 +138,30 @@ def get_current_admin(
         )
 
     return admin
+
+
+def get_current_owner(
+    current_admin: Admin = Depends(get_current_admin),
+) -> Admin:
+    """Verify the current admin has the owner role, or reject the request.
+
+    Layers on top of get_current_admin — first confirms the token is
+    valid and the admin exists, then additionally checks role. Used to
+    protect actions managers shouldn't be able to do (settings, account
+    management).
+
+    Args:
+        current_admin: The authenticated admin, injected via get_current_admin.
+
+    Returns:
+        Admin: The authenticated admin, guaranteed to have role == "owner".
+
+    Raises:
+        HTTPException: 403 if the admin is authenticated but isn't an owner.
+    """
+    if current_admin.role != "owner":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Owner access required",
+        )
+    return current_admin

@@ -139,3 +139,16 @@ class ExportData(BaseModel):
     categories: list[CategoryCreate]
     items: list[ItemCreate]
     settings: SettingsUpdate
+
+
+class AdminCreate(BaseModel):
+    username: str = Field(max_length=100)
+    password: str = Field(min_length=8)
+
+
+class AdminResponse(BaseModel):
+    id: int
+    username: str
+    role: str
+
+    model_config = ConfigDict(from_attributes=True)
