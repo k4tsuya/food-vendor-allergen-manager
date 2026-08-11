@@ -40,12 +40,29 @@ def client(db_session):
 
 @pytest.fixture
 def auth_headers(client, db_session):
-    db_session.add(Admin(username="testadmin", hashed_password=hash_password("testpass123")))
+    db_session.add(
+        Admin(username="testadmin", hashed_password=hash_password("testpass123"), role="owner")
+    )
     db_session.commit()
 
     response = client.post(
         "/auth/login",
         json={"username": "testadmin", "password": "testpass123"},
+    )
+    token = response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def manager_auth_headers(client, db_session):
+    db_session.add(
+        Admin(username="testmanager", hashed_password=hash_password("testpass123"), role="manager")
+    )
+    db_session.commit()
+
+    response = client.post(
+        "/auth/login",
+        json={"username": "testmanager", "password": "testpass123"},
     )
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
