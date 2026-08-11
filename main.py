@@ -19,6 +19,7 @@ from src.product_management.core.security import limiter
 from src.product_management.models import Base
 from src.product_management.queries import get_settings
 from src.product_management.routers import (
+    admins,
     allergens,
     auth,
     categories,
@@ -115,3 +116,4 @@ app.include_router(health.router, tags=["Health"])
 app.include_router(auth.router, tags=["Authentication"])
 app.include_router(config.router, tags=["Settings"])
 app.include_router(data.router, tags=["Backup &Restore"])
+app.include_router(admins.router, tags=["Admin Management"])

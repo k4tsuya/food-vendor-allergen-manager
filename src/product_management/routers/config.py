@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from src.product_management.core.audit import log_admin_action
 from src.product_management.core.database import get_db
-from src.product_management.core.security import get_current_admin
+from src.product_management.core.security import get_current_owner
 from src.product_management.models import Admin
 from src.product_management.queries import get_settings, update_settings
 from src.product_management.schemas import SettingsResponse, SettingsUpdate
@@ -42,7 +42,7 @@ def get_config(db: Session = Depends(get_db)) -> SettingsResponse:
 @router.put("/config", response_model=SettingsResponse)
 def update_config(
     data: SettingsUpdate,
-    current_admin: Admin = Depends(get_current_admin),
+    current_admin: Admin = Depends(get_current_owner),
     db: Session = Depends(get_db),
 ) -> SettingsResponse:
     """Update app settings. Requires authentication.
@@ -67,7 +67,7 @@ MAX_LOGO_SIZE = 2 * 1024 * 1024  # 2MB
 @router.post("/config/logo", response_model=SettingsResponse)
 def upload_logo(
     file: UploadFile = File(...),
-    current_admin: Admin = Depends(get_current_admin),
+    current_admin: Admin = Depends(get_current_owner),
     db: Session = Depends(get_db),
 ) -> SettingsResponse:
     """Upload a vendor logo, replacing any existing one.
@@ -135,7 +135,7 @@ def upload_logo(
 
 @router.delete("/config/logo", response_model=SettingsResponse)
 def delete_logo(
-    current_admin: Admin = Depends(get_current_admin),
+    current_admin: Admin = Depends(get_current_owner),
     db: Session = Depends(get_db),
 ) -> SettingsResponse:
     """Remove the current vendor logo, if any.

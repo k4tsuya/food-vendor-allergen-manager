@@ -15,7 +15,12 @@ from src.product_management.core.security import (
     verify_password,
 )
 from src.product_management.models import Admin
-from src.product_management.schemas import LoginRequest, PasswordChangeRequest, TokenResponse
+from src.product_management.schemas import (
+    AdminResponse,
+    LoginRequest,
+    PasswordChangeRequest,
+    TokenResponse,
+)
 
 logger = logging.getLogger("security")
 
@@ -60,17 +65,17 @@ def login(
     return TokenResponse(access_token=token)
 
 
-@router.get("/auth/me")
-def get_me(current_admin: Admin = Depends(get_current_admin)) -> dict[str, str]:
+@router.get("/auth/me", response_model=AdminResponse)
+def get_me(current_admin: Admin = Depends(get_current_admin)) -> AdminResponse:
     """Return the currently authenticated admin's username. Used to verify a token is valid.
 
     Args:
         current_admin: The currently authenticated admin instance.
 
     Returns:
-        dict[str, str]: A dictionary containing the username of the authenticated admin.
+        AdminResponse: The admin's id, username, and role.
     """
-    return {"username": current_admin.username}
+    return AdminResponse.model_validate(current_admin)
 
 
 @router.put("/auth/password")

@@ -7,7 +7,10 @@ const API_BASE = 'http://localhost:8000';
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('admin_token'));
   const [isValidating, setIsValidating] = useState(true);
+  const [role, setRole] = useState(null);
 
+
+  
   useEffect(() => {
     if (!token) {
       setIsValidating(false);
@@ -21,10 +24,17 @@ export function AuthProvider({ children }) {
         if (!response.ok) {
           localStorage.removeItem('admin_token');
           setToken(null);
+          return null;
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data) {
+          setRole(data.role);
         }
       })
       .finally(() => setIsValidating(false));
-  }, []);
+  }, [token]);
 
   const login = async (username, password) => {
     const response = await fetch(`${API_BASE}/auth/login`, {
@@ -40,15 +50,24 @@ export function AuthProvider({ children }) {
     const data = await response.json();
     localStorage.setItem('admin_token', data.access_token);
     setToken(data.access_token);
+
+    const meResponse = await fetch(`${API_BASE}/auth/me`, {
+      headers: { Authorization: `Bearer ${data.access_token}` },
+    });
+    const meData = await meResponse.json();
+    setRole(meData.role);
   };
 
   const logout = () => {
     localStorage.removeItem('admin_token');
     setToken(null);
+    setRole(null);
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, logout, isAuthenticated: !!token, isValidating }}>
+    <AuthContext.Provider
+      value={{ token, role, isOwner: role === 'owner', login, logout, isAuthenticated: !!token, isValidating }}
+    >
       {children}
     </AuthContext.Provider>
   );
