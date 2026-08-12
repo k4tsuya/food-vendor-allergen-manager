@@ -65,7 +65,7 @@ def start_backup_scheduler() -> BackgroundScheduler:
         down cleanly on app shutdown if needed.
     """
     scheduler = BackgroundScheduler()
-    scheduler.add_job(run_scheduled_backup, "cron", hour=9, minute=21)
+    scheduler.add_job(run_scheduled_backup, "cron", hour=3, minute=0)
     scheduler.start()
     logger.info("Backup scheduler started (daily at 03:00 UTC)")
     return scheduler
