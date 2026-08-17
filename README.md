@@ -82,6 +82,7 @@ I intentionally chose this tech stack to **learn and explore different tools** b
 * **pytest** – automated testing, with an isolated in-memory test database
 * **ruff** – linting and formatting
 * **mypy** – static type checking
+* **APScheduler** – daily automated backup job
 
 **Frontend**
 * **React** – component-based UI library
@@ -104,18 +105,21 @@ Although I have previous experience with **Django + DRF**, this project focuses 
 src/product_management/
 ├── core/
 │   ├── database.py       # DB engine/session setup + get_db dependency, reads DATABASE_URL from .env
-│   ├── security.py         # Password hashing, JWT creation/verification, rate limiter, auth dependency
+│   ├── security.py         # Password hashing, JWT creation/verification, rate limiter, auth dependencies
 │   ├── logging_config.py     # Global logging setup (format, level)
-│   └── audit.py                # Lightweight audit logging for admin write actions
+│   ├── audit.py                # Lightweight audit logging for admin write actions
+│   ├── backup.py                 # Daily automated JSON backup job (APScheduler)
+│   └── body_limit.py               # Request body size limiting middleware
 ├── routers/
 │   ├── items.py             # /items, /items/pdf routes (search/filter, CRUD)
 │   ├── allergens.py          # /allergens routes (public read, authenticated write)
 │   ├── meat_types.py          # /meat-types routes (public read, authenticated write)
 │   ├── categories.py           # /categories routes (public read, authenticated write)
-│   ├── config.py                # /config route — app-wide settings (public read, authenticated write)
-│   ├── auth.py                    # /auth/login, /auth/me, /auth/password
-│   ├── data.py                      # /data/export, /data/import — full backup/restore
-│   └── health.py                    # /health route
+│   ├── config.py                # /config route — app-wide settings (owner-only write)
+│   ├── admins.py                  # /admins routes — manage manager accounts (owner-only)
+│   ├── auth.py                      # /auth/login, /auth/me, /auth/password
+│   ├── data.py                        # /data/export, /data/import — full backup/restore
+│   └── health.py                        # /health route
 ├── models.py               # SQLAlchemy models (Item, Allergen, MeatType, Category, Admin, AppSettings)
 ├── schemas.py               # Pydantic schemas
 ├── queries/                  # DB query functions, split by resource
@@ -125,7 +129,8 @@ src/product_management/
 │   ├── meat_types.py                 # Meat type CRUD
 │   ├── categories.py                   # Category CRUD
 │   ├── settings.py                       # get_settings/update_settings
-│   └── data_transfer.py                    # export_all_data/import_all_data
+│   ├── admins.py                           # Manager account CRUD (list/create/delete)
+│   └── data_transfer.py                      # export_all_data/import_all_data
 ├── seed/
 │   ├── insert_data.py         # Functions that insert data into the DB
 │   ├── items.py                 # Real item+allergen data (gitignored, see below)
@@ -211,7 +216,7 @@ The application automatically seeds:
 
 ### Admin account
 
-A single admin account is seeded on first startup, from `ADMIN_USERNAME`/`ADMIN_PASSWORD` in `.env`. Its password is stored as a bcrypt hash — the plaintext value from `.env` is never stored anywhere. Re-running the seed does not reset an existing admin's password.
+A single **owner** account is seeded on first startup, from `ADMIN_USERNAME`/`ADMIN_PASSWORD` in `.env`. Its password is stored as a bcrypt hash — the plaintext value from `.env` is never stored anywhere. Re-running the seed does not reset an existing admin's password. Additional **manager** accounts can be created by the owner (see **Authentication & Admin Access** below).
 
 ---
 
@@ -228,15 +233,18 @@ The app uses Python's standard `logging` module, configured once at startup (tim
 
 ## 🔐 Authentication & Admin Access
 
-The project has a single admin account (no multi-user roles) protecting all write operations.
+Admin accounts have two roles: **owner** (full access, seeded from `.env` on first startup) and **manager** (can manage items, allergens, meat types, and categories, but not settings or other accounts). Every account, regardless of role, protects all write operations behind authentication.
 
 * **Login** — `POST /auth/login` with a username/password, returns a JWT access token (1 hour expiry)
 * **Protected routes** — every `POST`/`PUT`/`DELETE` endpoint requires a valid `Authorization: Bearer <token>` header
+* **Owner-only routes** — updating settings, uploading/removing the logo, and creating or deleting admin accounts require the `owner` role specifically; a manager's token is rejected with a `403` on these
 * **Public reads** — `GET` endpoints (items, allergens, meat types, categories, config) remain open, since the public matrix page needs them without anyone logging in
 * **Password storage** — hashed with bcrypt via `passlib`, never stored or logged in plaintext
 * **Rate limiting** — `POST /auth/login` is limited to 5 attempts per minute per IP address (via `slowapi`), to make brute-force password guessing impractical
-* **Frontend session** — the JWT is stored in `localStorage` and validated against `GET /auth/me` on page load, so a stale or tampered token doesn't silently grant access to the admin UI. It's also checked on every subsequent request — if any authenticated call returns `401` (e.g. the token expired mid-session), the frontend immediately clears it and redirects to `/login`.
-* **Changing your password** — from `/admin/account`, an admin can change their own password by confirming their current one. This immediately invalidates the current session and requires logging in again with the new password.
+* **Frontend session** — the JWT is stored in `localStorage` and validated against `GET /auth/me` on page load (which also returns the account's role, used to decide which admin UI sections to show), so a stale or tampered token doesn't silently grant access to the admin UI. It's also checked on every subsequent request — if any authenticated call returns `401` (e.g. the token expired mid-session), the frontend immediately clears it and redirects to `/login`.
+* **Changing your password** — from `/admin/account`, any admin (owner or manager) can change their own password by confirming their current one. This immediately invalidates the current session and requires logging in again with the new password.
+
+The backend and API for creating/listing/deleting manager accounts (`POST`/`GET`/`DELETE /admins`, owner-only) is complete; the admin-area UI for managing these accounts is still in progress.
 
 ---
 
@@ -271,6 +279,7 @@ SECRET_KEY=your-secret-key-here
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=your-password-here
 TRUSTED_HOSTS=localhost,127.0.0.1
+MAX_BODY_SIZE_BYTES=3145728
 ```
 
 Generate a real `SECRET_KEY` (used to sign JWTs) rather than leaving the placeholder:
@@ -387,13 +396,18 @@ Go to `http://localhost:5173/login` and sign in with the `ADMIN_USERNAME`/`ADMIN
 * `GET /auth/me` – returns the current admin's identity if the token is valid
 * `PUT /auth/password` – change the current admin's password (requires the current password); invalidates the session, requiring a fresh login
 
-**Admin-only (require a valid Bearer token)**
+**Admin-only (any role — owner or manager)**
 * `POST` / `PUT` / `DELETE` on `/items/{id}`, `/allergens/{id}`, `/meat-types/{id}`, `/categories/{id}`
+
+**Owner-only**
 * `PUT /config` – update app settings
 * `POST /config/logo` – upload a vendor logo (PNG/JPG/SVG, max 2MB), replacing any existing one
 * `DELETE /config/logo` – remove the current logo
-* `GET /data/export` – export all business data (items, allergens, meat types, categories, settings) as JSON — excludes the admin account
-* `POST /data/import` – **replace** all business data with the contents of an imported JSON export (destructive; the admin account is untouched)
+* `GET /data/export` – export all business data (items, allergens, meat types, categories, settings) as JSON — excludes admin accounts
+* `POST /data/import` – **replace** all business data with the contents of an imported JSON export (destructive; admin accounts are untouched)
+* `GET /admins` – list all admin accounts (owner and managers)
+* `POST /admins` – create a new manager account
+* `DELETE /admins/{id}` – delete a manager account (the owner account itself cannot be deleted)
 
 ---
 
@@ -452,6 +466,8 @@ A few small, deliberate additions, plus known tradeoffs worth documenting honest
 * `Referrer-Policy: same-origin` — avoids leaking referrer URLs to external destinations
 
 **Host header validation** — `TrustedHostMiddleware` checks every incoming request's `Host` header against an allow-list before it reaches any route, rejecting requests with a spoofed or unexpected host. The allowed list is read from `TRUSTED_HOSTS` in `.env` (comma-separated), so it can differ per deployment without a code change — locally this defaults to `localhost,127.0.0.1`.
+
+**Request body size limit** — every request's `Content-Length` is checked against `MAX_BODY_SIZE_BYTES` (`.env`, defaults to 3MB) before the body is processed, rejecting oversized requests with a `413`. This checks the declared header rather than streaming/counting bytes, so it doesn't protect against a request that omits or lies about `Content-Length` (e.g. chunked transfer encoding) — an accepted limitation given this app's traffic pattern (authenticated admins only, no public write endpoints). The data-import file picker also validates file size client-side before upload, since browsers report a generic network error rather than a clean `413` when a request is rejected mid-upload.
 
 `Content-Security-Policy` and `Strict-Transport-Security` were deliberately left out for now — CSP needs careful tuning to avoid breaking the app's own scripts/styles, and HSTS only makes sense once this is served over HTTPS rather than local `http://localhost`. Both are worth adding at actual deployment time.
 
