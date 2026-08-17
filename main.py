@@ -13,6 +13,7 @@ from slowapi.errors import RateLimitExceeded
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from src.product_management.core.backup import start_backup_scheduler
+from src.product_management.core.body_limit import limit_body_size
 from src.product_management.core.database import SessionLocal, engine
 from src.product_management.core.logging_config import configure_logging
 from src.product_management.core.security import limiter
@@ -88,9 +89,12 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 
+app.middleware("http")(limit_body_size)
+
 trusted_hosts = [
     host.strip() for host in os.getenv("TRUSTED_HOSTS", "localhost,127.0.0.1,testserver").split(",")
 ]
+
 
 app.add_middleware(
     CORSMiddleware,

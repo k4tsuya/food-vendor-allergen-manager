@@ -77,12 +77,22 @@ const handleExport = async () => {
   URL.revokeObjectURL(url);
 };
 
+const MAX_IMPORT_SIZE = 3 * 1024 * 1024; // 3MB — matches the backend's MAX_BODY_SIZE_BYTES default
+
 const handleImportFileSelected = async (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
   setImportError('');
   setImportSuccess(false);
+
+  if (file.size > MAX_IMPORT_SIZE) {
+    setImportError(
+      `File is too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum allowed size is ${MAX_IMPORT_SIZE / 1024 / 1024}MB.`
+    );
+    e.target.value = '';
+    return;
+  }
 
   if (!window.confirm('This will REPLACE all items, allergens, meat types, categories, and settings with the contents of this file. This cannot be undone. Continue?')) {
     e.target.value = '';
