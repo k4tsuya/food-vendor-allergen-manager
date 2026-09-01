@@ -17,6 +17,7 @@ from src.product_management.core.body_limit import limit_body_size
 from src.product_management.core.database import SessionLocal, engine
 from src.product_management.core.logging_config import configure_logging
 from src.product_management.core.security import limiter
+from src.product_management.core.security_headers import add_security_headers
 from src.product_management.models import Base
 from src.product_management.queries import get_settings
 from src.product_management.routers import (
@@ -80,16 +81,8 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
-@app.middleware("http")
-async def add_security_headers(request: Request, call_next):
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Referrer-Policy"] = "same-origin"
-    return response
-
-
 app.middleware("http")(limit_body_size)
+app.middleware("http")(add_security_headers)
 
 trusted_hosts = [
     host.strip() for host in os.getenv("TRUSTED_HOSTS", "localhost,127.0.0.1,testserver").split(",")
