@@ -244,7 +244,7 @@ Admin accounts have two roles: **owner** (full access, seeded from `.env` on fir
 * **Frontend session** — the JWT is stored in `localStorage` and validated against `GET /auth/me` on page load (which also returns the account's role, used to decide which admin UI sections to show), so a stale or tampered token doesn't silently grant access to the admin UI. It's also checked on every subsequent request — if any authenticated call returns `401` (e.g. the token expired mid-session), the frontend immediately clears it and redirects to `/login`.
 * **Changing your password** — from `/admin/account`, any admin (owner or manager) can change their own password by confirming their current one. This immediately invalidates the current session and requires logging in again with the new password.
 
-The backend and API for creating/listing/deleting manager accounts (`POST`/`GET`/`DELETE /admins`, owner-only) is complete; the admin-area UI for managing these accounts is still in progress.
+Manager accounts can be created, listed, and deleted from `/admin/account` (owner-only section of the same page where any admin changes their own password) — see **Frontend Pages** below.
 
 ---
 
@@ -419,7 +419,7 @@ Go to `http://localhost:5173/login` and sign in with the `ADMIN_USERNAME`/`ADMIN
 * `/admin/items` – Create, edit, and delete items: name, category (dropdown), allergens and meat types (checkboxes). Invalid codes can't be submitted through this UI, but the backend still validates and reports warnings if bypassed via direct API access. Paginated (25 per page).
 * `/admin/categories`, `/admin/allergens`, `/admin/meat-types` – Each uses the same reusable list/create/edit/delete UI, since all three share the same code + English/Dutch description shape.
 * `/admin/settings` – Update company name, site title, logo, default language, and the meat tracking toggle. Requires confirmation before saving, since these affect the whole site.
-* `/admin/account` – Change the admin's own password. Requires the current password, and confirming a new password twice client-side before submitting. On success, the session ends immediately and the admin must log in again.
+* `/admin/account` – Change the admin's own password (available to any admin). Requires the current password, and confirming a new password twice client-side before submitting. On success, the session ends immediately and the admin must log in again. **Owners** additionally see an "Account manager" section here: a table of all admin accounts with their role, an "Add manager" button (opens a modal for username/password), and a delete action per manager row — the owner's own row shows a disabled placeholder instead of a delete button, since the owner account can't be removed.
 
 `/admin/settings` also includes a **Backup & Restore** section: "Export all data" downloads a full JSON snapshot (items, allergens, meat types, categories, settings), and "Import data" accepts a previously exported file and **replaces** all current business data with its contents. Import is explicitly confirmed given it's destructive and irreversible; the admin account itself is untouched by either operation.
 
