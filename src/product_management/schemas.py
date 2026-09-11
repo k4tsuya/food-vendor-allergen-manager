@@ -2,7 +2,9 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from src.product_management.core.security import validate_password_strength
 
 
 class AllergenResponse(BaseModel):
@@ -131,6 +133,11 @@ class PasswordChangeRequest(BaseModel):
     current_password: str = Field(max_length=100)
     new_password: str = Field(max_length=100)
 
+    @field_validator("new_password")
+    @classmethod
+    def check_password_strength(cls, value: str) -> str:
+        return validate_password_strength(value)
+
 
 class ExportData(BaseModel):
     exported_at: str
@@ -143,7 +150,12 @@ class ExportData(BaseModel):
 
 class AdminCreate(BaseModel):
     username: str = Field(max_length=100)
-    password: str = Field(min_length=8)
+    password: str
+
+    @field_validator("password")
+    @classmethod
+    def check_password_strength(cls, value: str) -> str:
+        return validate_password_strength(value)
 
 
 class AdminResponse(BaseModel):

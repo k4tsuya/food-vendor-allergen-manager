@@ -16,11 +16,20 @@ export async function apiFetch(path, token, options = {}) {
     throw new Error('Session expired. Please log in again.');
   }
 
-  if (!response.ok) {
-    const errorBody = await response.json().catch(() => ({}));
-    throw new Error(errorBody.detail || `Request failed with status ${response.status}`);
+if (!response.ok) {
+  const errorBody = await response.json().catch(() => ({}));
+
+  let message = `Request failed with status ${response.status}`;
+  if (typeof errorBody.detail === 'string') {
+    message = errorBody.detail;
+  } else if (Array.isArray(errorBody.detail) && errorBody.detail.length > 0) {
+    message = errorBody.detail
+      .map((e) => e.msg.replace(/^Value error, /, ''))
+      .join(' ');
   }
 
+  throw new Error(message);
+}
   if (response.status === 204) {
     return null;
   }

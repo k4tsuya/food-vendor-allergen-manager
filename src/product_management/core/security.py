@@ -2,6 +2,7 @@
 
 import logging
 import os
+import re
 from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException, status
@@ -55,6 +56,34 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         True if the password matches the hash, False otherwise.
     """
     return pwd_context.verify(plain_password, hashed_password)
+
+
+def validate_password_strength(value: str) -> str:
+    """Enforce minimum password strength: length, letters, and numbers.
+
+    Shared by any schema accepting a new password (account creation,
+    password change) via a Pydantic field_validator, so the rule only
+    needs to be defined once. Lives here rather than in schemas.py
+    since it's a security rule, not a shape/type constraint — grouped
+    with the rest of this project's password-related logic.
+
+    Args:
+        value: The candidate password.
+
+    Returns:
+        The password unchanged, if it passes all checks.
+
+    Raises:
+        ValueError: If the password is too short, or missing a letter
+            or a number.
+    """
+    if len(value) < 8:
+        raise ValueError("Password must be at least 8 characters long.")
+    if not re.search(r"[A-Za-z]", value):
+        raise ValueError("Password must contain at least one letter.")
+    if not re.search(r"[0-9]", value):
+        raise ValueError("Password must contain at least one number.")
+    return value
 
 
 def create_access_token(username: str) -> str:
